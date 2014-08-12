@@ -6,7 +6,8 @@
 - Transparent serialization
 - Connection pooling
 - Consistent Hashing on the client.
-- Support for Clustering of Redis nodes.
+- Support for basic Redis sharding. http://redis.io/topics/partitioning
+- Support for Redis Sentinel
 
 ## Information about redis
 
@@ -14,24 +15,19 @@ Redis is a key-value database. It is similar to memcached but the dataset is not
 
 http://redis.io
 
-### Key features of Redis
-
-- Fast in-memory store with asynchronous save to disk.
-- Key value get, set, delete, etc.
-- Atomic operations on sets and lists, union, intersection, trim, etc.
-
 ## Requirements
 
-- sbt (get it at http://code.google.com/p/simple-build-tool/)
+- maven
+
+        <dependency>
+			<groupId>org.redis</groupId>
+			<artifactId>scala-redis_${scala.version}</artifactId>
+			<version>${scalaredis.version}</version>
+		</dependency>
 
 ## Usage
 
 Start your redis instance (usually redis-server will do it)
-
-    $ cd scala-redis
-    $ sbt
-    > update
-    > console
 
 And you are ready to start issuing commands to the server(s)
 
@@ -157,60 +153,6 @@ And here's the snippet that throttles our redis server with the above operations
     val fns = List[List[String] => Option[Int]](lp, rp, set)
     val tasks = fns map (fn => scala.actors.Futures.future { fn(l) })
     val results = tasks map (future => future.apply())
-
-## Implementing asynchronous patterns using pooling and Futures
-
-scala-redis is a blocking client for Redis. But you can develop high performance asynchronous patterns of computation using scala-redis and Futures. RedisClientPool allows you to work with multiple RedisClient instances and Futures offer a non-blocking semantics on top of this. The combination can give you good numbers for implementing common usage patterns like scatter/gather. Here's an example that you will also find in the test suite. It uses the scatter/gather technique to do loads of push across many lists in parallel. The gather phase pops from all those lists in parallel and does some compuation over them.
-
-Here's the main routine that implements the pattern:
-
-    // set up Executors
-    val system = ActorSystem("ScatterGatherSystem")
-    import system.dispatcher
-
-    val timeout = 5 minutes
-
-    private[this] def flow[A](noOfRecipients: Int, opsPerClient: Int, keyPrefix: String, 
-      fn: (Int, String) => A) = {
-      (1 to noOfRecipients) map {i => 
-        Future {
-          fn(opsPerClient, "list_" + i)
-        }
-      }
-    }
-
-    // scatter across clients and gather them to do a sum
-    def scatterGatherWithList(opsPerClient: Int)(implicit clients: RedisClientPool) = {
-      // scatter
-      val futurePushes = flow(100, opsPerClient, "list_", listPush)
-
-      // concurrent combinator: Future.sequence
-      val allPushes = Future.sequence(futurePushes)
-
-      // sequential combinator: flatMap
-      val allSum = allPushes flatMap {result =>
-        // gather
-        val futurePops = flow(100, opsPerClient, "list_", listPop)
-        val allPops = Future.sequence(futurePops)
-        allPops map {members => members.sum}
-      }
-      Await.result(allSum, timeout).asInstanceOf[Long]
-    }
-
-    // scatter across clietns and gather the first future to complete
-    def scatterGatherFirstWithList(opsPerClient: Int)(implicit clients: RedisClientPool) = {
-      // scatter phase: push to 100 lists in parallel
-      val futurePushes = flow(100, opsPerClient, "seq_", listPush)
-
-      // wait for the first future to complete
-      val firstPush = Future.firstCompletedOf(futurePushes)
-
-      // do a sum on the list whose key we got from firstPush
-      val firstSum = firstPush map {key =>
-        listPop(opsPerClient, key)
-      }
-      Await.result(firstSum, timeout).asInstanceOf[Int]
-    }
 
 ## License
 
