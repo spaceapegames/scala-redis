@@ -3,7 +3,7 @@ package com.redis.sentinel
 import com.redis._
 import com.redis.RedisGenericPoolConfig
 
-class RedisClientPoolBySentinel(masterName: String, sentinelCluster: SentinelCluster, val maxIdle: Int = 8, val database: Int = 0, val secret: Option[Any] = None, poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()) extends RedisClientPool
+class RedisClientPoolBySentinel(val masterName: String, val sentinelCluster: SentinelCluster, val maxIdle: Int = 8, val database: Int = 0, val secret: Option[Any] = None, poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()) extends RedisClientPool
   with SentinelMonitoredRedisMaster{
 
   private var pool: RedisClientPoolByAddress = null
