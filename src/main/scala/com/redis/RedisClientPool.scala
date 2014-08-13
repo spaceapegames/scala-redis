@@ -45,3 +45,9 @@ class RedisClientPoolByAddress(node: RedisNode, poolConfig: RedisClientPoolConfi
     return true
   }
 }
+
+trait PoolCreationByAddress {
+  def poolCreator (node: RedisNode, poolConfig: RedisClientPoolConfig): RedisClientPool = {
+    new RedisClientPoolByAddress(node, poolConfig)
+  }
+}

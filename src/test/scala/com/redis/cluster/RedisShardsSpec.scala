@@ -6,23 +6,18 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
-import com.redis.{RedisNode, RedisClientPoolByAddress, RedisClient}
+import com.redis.{PoolCreationByAddress, RedisNode, RedisClientPoolByAddress, RedisClient}
 import com.redis.serialization.Format
 
 
 @RunWith(classOf[JUnitRunner])
-class RedisShardsSpec extends FunSpec 
-                       with ShouldMatchers
-                       with BeforeAndAfterEach
-                       with BeforeAndAfterAll {
+class RedisShardsSpec extends FunSpec
+with ShouldMatchers
+with BeforeAndAfterEach
+with BeforeAndAfterAll {
 
   val nodes = List(RedisNode("node1", "localhost", 6379), RedisNode("node2", "localhost", 6380), RedisNode("node3", "localhost", 6381))
-  val r = new RedisShards(nodes)({
-    node => poolConfig =>
-      new RedisClientPoolByAddress(node, poolConfig)
-  }){
-    val keyTag = Some(RegexKeyTag)
-  }
+  val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy
 
   override def beforeEach = {}
 
@@ -53,7 +48,7 @@ class RedisShardsSpec extends FunSpec
       val l = List("debasish", "maulindu", "ramanendu", "nilanjan", "tarun", "tarun", "tarun")
 
       // set
-      l foreach (s =>  r.processForKey(s)(_.set(s, s + " is working in anshin")) should equal(true))
+      l foreach (s => r.processForKey(s)(_.set(s, s + " is working in anshin")) should equal(true))
 
       r.get("debasish").get should equal("debasish is working in anshin")
       r.get("maulindu").get should equal("maulindu is working in anshin")
@@ -86,7 +81,7 @@ class RedisShardsSpec extends FunSpec
       r.mget(l.head, l.tail: _*).get.map(_.get.split(" ")(0)) should equal(l)
     }
 
-    it("list operations should work on the cluster"){
+    it("list operations should work on the cluster") {
       r.lpush("java-virtual-machine-langs", "java") should equal(Some(1))
       r.lpush("java-virtual-machine-langs", "jruby") should equal(Some(2))
       r.lpush("java-virtual-machine-langs", "groovy") should equal(Some(3))
@@ -94,7 +89,7 @@ class RedisShardsSpec extends FunSpec
       r.llen("java-virtual-machine-langs") should equal(Some(4))
     }
 
-    it("keytags should ensure mapping to the same server"){
+    it("keytags should ensure mapping to the same server") {
       r.lpush("java-virtual-machine-{langs}", "java") should equal(Some(1))
       r.lpush("java-virtual-machine-{langs}", "jruby") should equal(Some(2))
       r.lpush("java-virtual-machine-{langs}", "groovy") should equal(Some(3))
@@ -106,15 +101,11 @@ class RedisShardsSpec extends FunSpec
       r.llen("microsoft-platform-{langs}") should equal(Some(2))
     }
 
-    it("replace node should not change hash ring order"){
-      val r = new RedisShards(nodes)({
-        node => poolConfig =>
-          new RedisClientPoolByAddress(node, poolConfig)
-      }) {
-		  val keyTag = Some(RegexKeyTag)
-	  }
+    it("replace node should not change hash ring order") {
+      val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy
+
       r.set("testkey1", "testvalue2")
-      r.get("testkey1") should equal (Some("testvalue2"))
+      r.get("testkey1") should equal(Some("testvalue2"))
 
       val nodename = r.hr.getNode(formattedKey("testkey1")).toString
 
@@ -125,44 +116,35 @@ class RedisShardsSpec extends FunSpec
 
       //replaced master with slave on the same node
       r.replaceServer(RedisNode(nodename, "localhost", 6382))
-      r.get("testkey1") should equal (Some("testvalue1"))
+      r.get("testkey1") should equal(Some("testvalue1"))
 
       //switch back to master. the old value is loaded
       val oldnode = nodes.filter(_.name.equals(nodename))(0)
       r.replaceServer(oldnode)
-      r.get("testkey1") should equal (Some("testvalue2"))
+      r.get("testkey1") should equal(Some("testvalue2"))
     }
-    
-    it("remove failure node should change hash ring order so that key on failure node should be served by other running nodes"){
-	  val r = new RedisShards(nodes)({
-      node => poolConfig =>
-        new RedisClientPoolByAddress(node, poolConfig)
-    }) {
-		  val keyTag = Some(RegexKeyTag)
-	  }
+
+    it("remove failure node should change hash ring order so that key on failure node should be served by other running nodes") {
+      val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy
+
       r.set("testkey1", "testvalue2")
-      r.get("testkey1") should equal (Some("testvalue2"))
+      r.get("testkey1") should equal(Some("testvalue2"))
 
       val nodename = r.hr.getNode(formattedKey("testkey1")).toString
 
       //replaced master with slave on the same node
       r.removeServer(nodename)
-      r.get("testkey1") should equal (None)
+      r.get("testkey1") should equal(None)
 
       r.set("testkey1", "testvalue2")
-      r.get("testkey1") should equal (Some("testvalue2"))
+      r.get("testkey1") should equal(Some("testvalue2"))
     }
-    
-    it("list nodes should return the running nodes but not configured nodes"){
-      val r = new RedisShards(nodes)({
-        node => poolConfig =>
-          new RedisClientPoolByAddress(node, poolConfig)
-      }) {
-		  val keyTag = Some(RegexKeyTag)
-	  }
-      r.listServers.toSet should equal (nodes.toSet)
+
+    it("list nodes should return the running nodes but not configured nodes") {
+      val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy
+      r.listServers.toSet should equal(nodes.toSet)
       r.removeServer("node1")
-      r.listServers.toSet should equal (nodes.filterNot(_.name.equals("node1")).toSet)
+      r.listServers.toSet should equal(nodes.filterNot(_.name.equals("node1")).toSet)
     }
   }
 }

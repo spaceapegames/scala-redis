@@ -21,3 +21,11 @@ object RegexKeyTag extends KeyTag {
 object NoOpKeyTag extends KeyTag {
   def tag(key: Seq[Byte]) = Some(key)
 }
+
+trait NoOpKeyTagPolicy {
+  val keyTag: Option[KeyTag] = Some(NoOpKeyTag)
+}
+
+trait RegexKeyTagPolicy {
+  val keyTag = Some(RegexKeyTag)
+}

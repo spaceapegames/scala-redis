@@ -4,8 +4,7 @@ import com.redis._
 
 import serialization._
 
-
-abstract class RedisShards(val hosts: List[RedisNode], poolConfig: RedisClientPoolConfig = RedisStackPoolConfig())(poolCreator: RedisNode => RedisClientPoolConfig => RedisClientPool) extends RedisCommand {
+abstract class RedisShards(val hosts: List[RedisNode], poolConfig: RedisClientPoolConfig = RedisStackPoolConfig()) extends RedisCommand {
 
   // not needed at cluster level
   override val host = null
@@ -13,12 +12,13 @@ abstract class RedisShards(val hosts: List[RedisNode], poolConfig: RedisClientPo
 
   // abstract val
   val keyTag: Option[KeyTag]
+  def poolCreator (node: RedisNode, poolConfig: RedisClientPoolConfig): RedisClientPool
 
   // default in libmemcached
   val POINTS_PER_SERVER = 160 // default in libmemcached
 
   // instantiating a cluster will automatically connect participating nodes to the server
-  private var clients: Map[String, RedisClientPool] = hosts.map { h => (h.name, poolCreator(h)(poolConfig)) } toMap
+  private var clients: Map[String, RedisClientPool] = hosts.map { h => (h.name, poolCreator(h, poolConfig)) } toMap
 
   // the hash ring will instantiate with the nodes up and added
   val hr = HashRing[String](hosts.map(_.name), POINTS_PER_SERVER)
@@ -47,7 +47,7 @@ abstract class RedisShards(val hosts: List[RedisNode], poolConfig: RedisClientPo
 
   // add a server
   def addServer(server: RedisNode) = {
-    clients = clients + (server.name -> poolCreator(server)(poolConfig))
+    clients = clients + (server.name -> poolCreator(server, poolConfig))
     hr addNode server.name
   }
 
@@ -57,7 +57,7 @@ abstract class RedisShards(val hosts: List[RedisNode], poolConfig: RedisClientPo
       clients(server.name).close
       clients = clients - server.name
     }
-    clients = clients + (server.name -> poolCreator(server)(poolConfig))
+    clients = clients + (server.name -> poolCreator(server, poolConfig))
   }
   
   //remove a server

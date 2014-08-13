@@ -46,3 +46,10 @@ class RedisClientPoolBySentinel(val masterName: String, val sentinelCluster: Sen
   }
 }
 
+trait PoolCreationBySentinel {
+  def getSentinelCluster: SentinelCluster
+
+  def poolCreator (node: RedisNode, poolConfig: RedisClientPoolConfig): RedisClientPool = {
+    new RedisClientPoolBySentinel(node.name, getSentinelCluster, node.maxIdle, node.database, node.secret, poolConfig)
+  }
+}
