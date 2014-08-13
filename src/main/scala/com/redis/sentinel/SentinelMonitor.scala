@@ -6,7 +6,7 @@ import com.redis.M
 import com.redis.U
 import scala.concurrent.duration._
 
-class SentinelMonitor (address: SentinelAddress, listener: SentinelListener) extends Log{
+class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, config: SentinelClusterConfig) extends Log{
   private var restartCount: Int = 0
 
   private[sentinel] var sentinel: SentinelClient = _
@@ -16,12 +16,16 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener) ext
 
   private def init {
     sentinel = new SentinelClient(address)
-    hearthBeater = new SentinelHearthBeater {
-      def sentinelClient: SentinelClient = new SentinelClient(address)
-      def heartBeatListener: SentinelListener = listener
-    }
-    new Thread(hearthBeater).start()
     sentinel.subscribe("+switch-master")(callback)
+
+    if (config.hearthBeatEnabled) {
+      hearthBeater = new SentinelHearthBeater {
+        def sentinelClient: SentinelClient = new SentinelClient(address)
+        def heartBeatListener: SentinelListener = listener
+        def hearthBeatInterval: Int = config.hearthBeatInterval
+      }
+      new Thread(hearthBeater).start()
+    }
   }
 
   def callback: PubSubMessage => Unit = pubsub => pubsub match {
@@ -57,6 +61,7 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener) ext
       }
     case E(exception) => {
       error("sentinel is not available. restart sentinel consumer and reconnect to sentinel", exception)
+      listener.subscriptionFailure
       autoReconnect
     }
   }
@@ -95,9 +100,9 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener) ext
 
 trait SentinelHearthBeater extends Runnable with Log{
   private var running = false
-  var healthFailure: () => Unit = null
   def sentinelClient: SentinelClient
   def heartBeatListener: SentinelListener
+  def hearthBeatInterval: Int
 
   def stop {
     running = false
@@ -106,7 +111,7 @@ trait SentinelHearthBeater extends Runnable with Log{
     running = true
 
     while (running) {
-      Thread.sleep((1 second).toMillis)
+      Thread.sleep(hearthBeatInterval)
       try {
         sentinelClient.masters match {
           case Some(list) =>
@@ -114,18 +119,14 @@ trait SentinelHearthBeater extends Runnable with Log{
             heartBeatListener.onMastersHeartBeat(list.filter(_.isDefined).map(_.get))
           case None =>
             ifDebug("heart beat failure")
-            if (healthFailure != null) {
-              healthFailure()
-            }
+            heartBeatListener.hearthBeatFailure
         }
       }catch {
         case e: Throwable =>
           ifDebug("heart beat is stopped")
           if (running){
             error("sentinel heart beat failure %s:%s", e, sentinelClient.host, sentinelClient.port)
-            if (healthFailure != null) {
-              healthFailure()
-            }
+            heartBeatListener.hearthBeatFailure
           }
       }
     }

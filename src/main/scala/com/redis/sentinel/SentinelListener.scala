@@ -5,4 +5,6 @@ import com.redis.RedisNode
 trait SentinelListener {
   def onMasterChange (node: RedisNode)
   def onMastersHeartBeat (values: List[Map[String, String]])
+  def hearthBeatFailure {}
+  def subscriptionFailure {}
 }

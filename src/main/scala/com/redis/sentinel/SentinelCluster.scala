@@ -2,14 +2,14 @@ package com.redis.sentinel
 
 import com.redis.{Log, RedisNode}
 
-class SentinelCluster extends SentinelListener with Log{
+class SentinelCluster (clusterConfig: SentinelClusterConfig = SentinelClusterConfig()) extends SentinelListener with Log{
   private var sentinelMonitors = Map.empty[SentinelAddress, SentinelMonitor]
   private var listeners = Map.empty[String, SentinelMonitoredRedisMaster]
 
   def onUpdateSentinels(sentinels: Set[SentinelAddress]){
     sentinelMonitors = sentinels.foldLeft(Map.empty[SentinelAddress, SentinelMonitor]){
       case (m, addr) =>
-        m + (addr -> sentinelMonitors.getOrElse(addr, new SentinelMonitor(addr, this)))
+        m + (addr -> sentinelMonitors.getOrElse(addr, new SentinelMonitor(addr, this, clusterConfig)))
     }
   }
 
