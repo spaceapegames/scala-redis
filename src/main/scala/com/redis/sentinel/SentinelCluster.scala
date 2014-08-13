@@ -1,8 +1,8 @@
 package com.redis.sentinel
 
-import com.redis.RedisNode
+import com.redis.{Log, RedisNode}
 
-class SentinelCluster extends SentinelListener{
+class SentinelCluster extends SentinelListener with Log{
   private var sentinelMonitors = Map.empty[SentinelAddress, SentinelMonitor]
   private var listeners = Map.empty[String, SentinelMonitoredRedisMaster]
 
@@ -39,6 +39,7 @@ class SentinelCluster extends SentinelListener{
           monitor.sentinel.master(masterName)
         }catch {
           case e: Exception =>
+            warn("failed to get master node %s from sentinel %s:%s", e, masterName, monitor.sentinel.host, monitor.sentinel.port)
             None
         }
     }.find(_.isDefined).getOrElse(None).map(values => {RedisNode(values)})

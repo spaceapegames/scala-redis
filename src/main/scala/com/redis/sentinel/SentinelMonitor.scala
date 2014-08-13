@@ -9,13 +9,20 @@ import scala.concurrent.duration._
 class SentinelMonitor (address: SentinelAddress, listener: SentinelListener) extends Log{
   private var restartCount: Int = 0
 
-  private[sentinel] var sentinel = new SentinelClient(address)
-  private val hearthBeater: SentinelHearthBeater = new SentinelHearthBeater {
-    def sentinelClient: SentinelClient = sentinel
-    def heartBeatListener: SentinelListener = listener
+  private[sentinel] var sentinel: SentinelClient = _
+  private var hearthBeater: SentinelHearthBeater = _
+
+  init
+
+  private def init {
+    sentinel = new SentinelClient(address)
+    hearthBeater = new SentinelHearthBeater {
+      def sentinelClient: SentinelClient = new SentinelClient(address)
+      def heartBeatListener: SentinelListener = listener
+    }
+    new Thread(hearthBeater).start()
+    sentinel.subscribe("+switch-master")(callback)
   }
-  new Thread(hearthBeater).start()
-  sentinel.subscribe("+switch-master")(callback)
 
   def callback: PubSubMessage => Unit = pubsub => pubsub match {
     case S(channel, no) => {
@@ -103,17 +110,22 @@ trait SentinelHearthBeater extends Runnable with Log{
       try {
         sentinelClient.masters match {
           case Some(list) =>
+            ifDebug("heart beating on " + sentinelClient.host + ":" + sentinelClient.port)
             heartBeatListener.onMastersHeartBeat(list.filter(_.isDefined).map(_.get))
           case None =>
+            ifDebug("heart beat failure")
             if (healthFailure != null) {
               healthFailure()
             }
         }
       }catch {
         case e: Throwable =>
-          if (running && healthFailure != null){
-            error("sentinal heart beat failure %s:%s", e, sentinelClient.host, sentinelClient.port)
-            healthFailure()
+          ifDebug("heart beat is stopped")
+          if (running){
+            error("sentinel heart beat failure %s:%s", e, sentinelClient.host, sentinelClient.port)
+            if (healthFailure != null) {
+              healthFailure()
+            }
           }
       }
     }
