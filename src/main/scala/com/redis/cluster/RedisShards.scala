@@ -4,6 +4,11 @@ import com.redis._
 
 import serialization._
 
+/**
+ * Redis Cluster
+ * @param hosts nodes in this cluster
+ * @param poolConfig config to initialize pool for each node
+ */
 abstract class RedisShards(val hosts: List[RedisNode], poolConfig: RedisClientPoolConfig = RedisStackPoolConfig()) extends RedisCommand {
 
   // not needed at cluster level

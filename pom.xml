@@ -4,7 +4,37 @@
 
 	<groupId>org.redis</groupId>
 	<artifactId>scala-redis_${scala.version}</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
+    <name>Scala Redis</name>
+    <description>
+        # Redis Scala client
+
+        ## Key features of the library
+
+        - Native Scala types Set and List responses.
+        - Transparent serialization
+        - Connection pooling
+        - Consistent Hashing on the client.
+        - Support for basic Redis sharding. http://redis.io/topics/partitioning
+        - Support for Redis Sentinel
+    </description>
+    <url>https://github.com/spaceapegames/scala-redis</url>
+    <developers>
+        <developer>
+            <id>ke</id>
+            <name>Ke</name>
+            <url>http://eric.propellors.net</url>
+            <organization>spaceapegames</organization>
+            <organizationUrl>http://www.spaceapegames.com</organizationUrl>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
 	<properties>
 		<scala.version>2.10.0</scala.version>
@@ -127,5 +157,46 @@
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
 	</distributionManagement>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.scala-tools</groupId>
+                        <artifactId>maven-scala-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    <!-- mvn scala:doc-jar deploy -Dmaven.test.skip=true -P release -->
 </project>
 
