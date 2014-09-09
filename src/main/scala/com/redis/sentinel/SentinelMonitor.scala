@@ -10,17 +10,19 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
   private var restartCount: Int = 0
 
   private[sentinel] var sentinel: SentinelClient = _
+  private[sentinel] var sentinelSubscriber: SentinelClient = _
   private var hearthBeater: SentinelHearthBeater = _
 
   init
 
   private def init {
-    sentinel = new SentinelClient(address)
-    sentinel.subscribe("+switch-master")(callback)
+    sentinelSubscriber = new SentinelClient(address)
+    sentinelSubscriber.subscribe("+switch-master")(callback)
 
+    sentinel = new SentinelClient(address)
     if (config.hearthBeatEnabled) {
       hearthBeater = new SentinelHearthBeater {
-        def sentinelClient: SentinelClient = new SentinelClient(address)
+        def sentinelClient: SentinelClient = sentinel
         def heartBeatListener: SentinelListener = listener
         def hearthBeatInterval: Int = config.hearthBeatInterval
       }

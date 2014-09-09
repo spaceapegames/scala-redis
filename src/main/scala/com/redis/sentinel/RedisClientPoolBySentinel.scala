@@ -10,9 +10,9 @@ class RedisClientPoolBySentinel(val masterName: String, val sentinelCluster: Sen
   init
 
   private def init {
-    sentinelCluster.addMonitoredRedisMaster(this)
     val redisNode = sentinelCluster.getMasterNode(masterName).getOrElse(throw new RedisMasterNotFoundException(masterName))
     pool = new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig)
+    sentinelCluster.addMonitoredRedisMaster(this)
   }
   def poolName: String = masterName
 
