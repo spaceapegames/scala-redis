@@ -6,7 +6,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.redis.sentinel.SentinelClient
 
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class SentinelOperationsSpec extends FunSpec
 with ShouldMatchers
 with BeforeAndAfterEach
