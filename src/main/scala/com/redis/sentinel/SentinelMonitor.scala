@@ -22,7 +22,7 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
     sentinel = new SentinelClient(address)
     if (config.hearthBeatEnabled) {
       hearthBeater = new SentinelHearthBeater {
-        def sentinelClient: SentinelClient = sentinel
+        def sentinelClient: SentinelClient = new SentinelClient(address)
         def heartBeatListener: SentinelListener = listener
         def hearthBeatInterval: Int = config.hearthBeatInterval
       }
@@ -115,6 +115,9 @@ trait SentinelHearthBeater extends Runnable with Log{
     while (running) {
       Thread.sleep(hearthBeatInterval)
       try {
+        if (!sentinelClient.connected){
+          sentinelClient.reconnect
+        }
         sentinelClient.masters match {
           case Some(list) =>
             ifDebug("heart beating on " + sentinelClient.host + ":" + sentinelClient.port)

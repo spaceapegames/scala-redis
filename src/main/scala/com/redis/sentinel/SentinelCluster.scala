@@ -35,6 +35,9 @@ class SentinelCluster (clusterConfig: SentinelClusterConfig = SentinelClusterCon
     sentinelMonitors.values.view.map {
       monitor =>
         try {
+          if (!monitor.sentinel.connected){
+            monitor.sentinel.reconnect
+          }
           //TODO timeout by sentinel request
           monitor.sentinel.master(masterName)
         }catch {
