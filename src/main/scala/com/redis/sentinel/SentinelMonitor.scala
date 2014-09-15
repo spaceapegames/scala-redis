@@ -14,10 +14,10 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
   private[sentinel] var sentinelSubscriber: SentinelClient = _
   private var hearthBeater: SentinelHearthBeater = _
   private val switchMasterListener = new SubscriptionReceiver() {
-    def received: String => Unit = msg => {
+    def onReceived: String => Unit = msg => {
       onSwitchMaster(msg)
     }
-    def subscriptionFailure: () => Unit = () => {
+    def onSubscriptionFailure: () => Unit = () => {
       listener.subscriptionFailure
     }
   }

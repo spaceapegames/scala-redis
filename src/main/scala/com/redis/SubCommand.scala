@@ -3,14 +3,18 @@ package com.redis
 trait SubCommand { self: Redis =>
   var pubSub: Boolean = _
 
-  def pSubscribe(channel: String, channels: String*)(fn: PubSubMessage => Any) {
-    if (pubSub == true) { // already pubsub ing
-      pSubscribeRaw(channel, channels: _*)
-      return
+  private def startSubscribing(fn: PubSubMessage => Any) {
+    //we don't expect huge scale of subscribing requests
+    this.synchronized {
+      if (pubSub == false) { // already pubsub ing
+        pubSub = true
+        new SubscribingThread(this, fn).start()
+      }
     }
-    pubSub = true
+  }
+  def pSubscribe(channel: String, channels: String*)(fn: PubSubMessage => Any) {
+    startSubscribing(fn)
     pSubscribeRaw(channel, channels: _*)
-    new SubscribingThread(this, fn).start
   }
 
   def pSubscribeRaw(channel: String, channels: String*) {
@@ -25,13 +29,8 @@ trait SubCommand { self: Redis =>
     send("PUNSUBSCRIBE", channel :: channels.toList)(())
   }
   def subscribe(channel: String, channels: String*)(fn: PubSubMessage => Any) {
-    if (pubSub == true) { // already pubsub ing
-      subscribeRaw(channel, channels: _*)
-    } else {
-      pubSub = true
-      subscribeRaw(channel, channels: _*)
-      new SubscribingThread(this, fn).start
-    }
+    startSubscribing(fn)
+    subscribeRaw(channel, channels: _*)
   }
 
   def subscribeRaw(channel: String, channels: String*) {
