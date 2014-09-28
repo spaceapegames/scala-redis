@@ -50,4 +50,6 @@ class RedisClientBySentinel(val masterName: String, sentinelCluster: SentinelClu
   def withClient[T](body: RedisClient => T) = {
     body(client)
   }
+
+  def getCurrentClient = client
 }
