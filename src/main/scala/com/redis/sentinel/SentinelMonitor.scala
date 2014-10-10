@@ -25,8 +25,10 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
   init
 
   private def init {
-    sentinelSubscriber = new SentinelClient(address)
-    this.subscribe("+switch-master", switchMasterListener)
+    if (config.sentinelSubscriptionEnabled) {
+      sentinelSubscriber = new SentinelClient(address)
+      this.subscribe("+switch-master", switchMasterListener)
+    }
 
     sentinel = new SentinelClient(address)
     if (config.heartBeatEnabled) {
@@ -94,7 +96,8 @@ trait SentinelHeartBeater extends Runnable with Log{
       Thread.sleep(heartBeatInterval)
       try {
         if (!sentinelClient.connected){
-          sentinelClient.reconnect
+          sentinelClient.disconnect
+          sentinelClient.connect
         }
         sentinelClient.masters match {
           case Some(list) =>
@@ -106,9 +109,9 @@ trait SentinelHeartBeater extends Runnable with Log{
         }
       }catch {
         case e: Throwable =>
-          ifDebug("heart beat is stopped")
+          ifDebug("heart beat is stopped. running status "+running)
           if (running){
-            error("sentinel heart beat failure %s:%s", e, sentinelClient.host, sentinelClient.port)
+            error("sentinel heart beat failure")
             heartBeatListener.heartBeatFailure
           }
       }
