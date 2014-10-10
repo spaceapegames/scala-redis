@@ -1,8 +1,8 @@
 package com.redis.sentinel
 
-import com.redis.{RedisNode, RedisMasterNotFoundException, RedisClient}
+import com.redis.{Log, RedisNode, RedisMasterNotFoundException, RedisClient}
 
-class RedisClientBySentinel(val masterName: String, sentinelCluster: SentinelCluster, onClientConnected: RedisNode => Unit) extends SentinelMonitoredRedisMaster {
+class RedisClientBySentinel(val masterName: String, sentinelCluster: SentinelCluster, onClientConnected: RedisNode => Unit) extends SentinelMonitoredRedisMaster with Log{
   private var host: String = null
   private var port: Int = 0
   private var client: RedisClient = null
@@ -30,6 +30,7 @@ class RedisClientBySentinel(val masterName: String, sentinelCluster: SentinelClu
 
   private def updateClient(newRedisNode: RedisNode) {
     if (newRedisNode.host != host || newRedisNode.port != port) {
+      ifDebug("redis node address is changing from "+host+":"+port+" to "+newRedisNode.host+":"+newRedisNode.port)
       host = newRedisNode.host
       port = newRedisNode.port
       reconnectClient
