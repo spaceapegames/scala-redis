@@ -4,7 +4,7 @@
 
 	<groupId>org.redis</groupId>
 	<artifactId>scala-redis_${scala.version}</artifactId>
-	<version>0.0.6</version>
+	<version>0.0.7-SNAPSHOT</version>
     <name>Scala Redis</name>
     <description>
         # Redis Scala client
