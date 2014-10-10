@@ -42,18 +42,22 @@ trait RedisSubscriptionMaintainer extends Log{
   private def exceptionHandle(){
     var numOfAttempts = 0
     var handlingComplete = false
-    while (!handlingComplete) {
+    while (!handlingComplete && (maxRetry < 0 || numOfAttempts < maxRetry)) {
+      Thread.sleep(retryInterval)
+      ifDebug("retrying subscription connection")
       try {
-        reconnect
-        resubscribeAll
-        handlingComplete = true
+        if (reconnect) {
+          resubscribeAll
+          handlingComplete = true
+        } else {
+          if (maxRetry > 0) {
+            numOfAttempts += 1
+          }
+        }
       } catch {
         case e: Throwable =>
-          numOfAttempts += 1
-          if (maxRetry > 0 && numOfAttempts > maxRetry) {
-            handlingComplete = true
-          } else {
-            Thread.sleep(retryInterval)
+          if (maxRetry > 0) {
+            numOfAttempts += 1
           }
       }
     }
@@ -76,7 +80,7 @@ trait RedisSubscriptionMaintainer extends Log{
   }
 
   protected def getRedisSub: SubCommand
-  protected def reconnect
+  protected def reconnect: Boolean
 }
 
 trait SubscriptionReceiver {

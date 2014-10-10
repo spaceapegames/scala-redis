@@ -7,12 +7,12 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
   extends RedisSubscriptionMaintainer
   with Log{
 
-  val maxRetry: Int = -1
-  val retryInterval: Long = (2 seconds).toMillis
+  val maxRetry: Int = config.maxSentinelMonitorRetry
+  val retryInterval: Long = config.sentinelRetryInterval
 
   private[sentinel] var sentinel: SentinelClient = _
   private[sentinel] var sentinelSubscriber: SentinelClient = _
-  private var hearthBeater: SentinelHearthBeater = _
+  private var heartBeater: SentinelHeartBeater = _
   private val switchMasterListener = new SubscriptionReceiver() {
     def onReceived: String => Unit = msg => {
       onSwitchMaster(msg)
@@ -29,25 +29,26 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
     this.subscribe("+switch-master", switchMasterListener)
 
     sentinel = new SentinelClient(address)
-    if (config.hearthBeatEnabled) {
-      hearthBeater = new SentinelHearthBeater {
+    if (config.heartBeatEnabled) {
+      heartBeater = new SentinelHeartBeater {
         def sentinelClient: SentinelClient = new SentinelClient(address)
         def heartBeatListener: SentinelListener = listener
-        def hearthBeatInterval: Int = config.hearthBeatInterval
+        def heartBeatInterval: Int = config.heartBeatInterval
       }
-      new Thread(hearthBeater).start()
+      new Thread(heartBeater).start()
     }
   }
 
   protected def getRedisSub: SubCommand = sentinelSubscriber
-  protected def reconnect {
-    val newSentinel = new SentinelClient(address)
+  protected def reconnect: Boolean = {
     try {
       sentinelSubscriber.disconnect
+      sentinelSubscriber.connect
     } catch {
-      case e: Throwable => error("failed to disconnect sentinel for reconnecting")
+      case e: Throwable =>
+        error("failed to reconnect sentinel", e)
+        false
     }
-    sentinelSubscriber = newSentinel
   }
 
   private def onSwitchMaster(msg: String) {
@@ -70,17 +71,17 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
   }
 
   def stop {
-    hearthBeater.stop
+    heartBeater.stop
     sentinel.disconnect
     sentinelSubscriber.disconnect
   }
 }
 
-trait SentinelHearthBeater extends Runnable with Log{
+trait SentinelHeartBeater extends Runnable with Log{
   private var running = false
   def sentinelClient: SentinelClient
   def heartBeatListener: SentinelListener
-  def hearthBeatInterval: Int
+  def heartBeatInterval: Int
 
   def stop {
     running = false
@@ -90,7 +91,7 @@ trait SentinelHearthBeater extends Runnable with Log{
     running = true
 
     while (running) {
-      Thread.sleep(hearthBeatInterval)
+      Thread.sleep(heartBeatInterval)
       try {
         if (!sentinelClient.connected){
           sentinelClient.reconnect
@@ -101,14 +102,14 @@ trait SentinelHearthBeater extends Runnable with Log{
             heartBeatListener.onMastersHeartBeat(list.filter(_.isDefined).map(_.get))
           case None =>
             ifDebug("heart beat failure")
-            heartBeatListener.hearthBeatFailure
+            heartBeatListener.heartBeatFailure
         }
       }catch {
         case e: Throwable =>
           ifDebug("heart beat is stopped")
           if (running){
             error("sentinel heart beat failure %s:%s", e, sentinelClient.host, sentinelClient.port)
-            heartBeatListener.hearthBeatFailure
+            heartBeatListener.heartBeatFailure
           }
       }
     }

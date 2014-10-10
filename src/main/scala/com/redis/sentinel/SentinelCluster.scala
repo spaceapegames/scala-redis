@@ -9,7 +9,14 @@ class SentinelCluster (clusterConfig: SentinelClusterConfig = SentinelClusterCon
   def onUpdateSentinels(sentinels: Set[SentinelAddress]){
     sentinelMonitors = sentinels.foldLeft(Map.empty[SentinelAddress, SentinelMonitor]){
       case (m, addr) =>
-        m + (addr -> sentinelMonitors.getOrElse(addr, new SentinelMonitor(addr, this, clusterConfig)))
+        try {
+          val sentinel = new SentinelMonitor(addr, this, clusterConfig)
+          m + (addr -> sentinelMonitors.getOrElse(addr, sentinel))
+        }catch {
+          case e: Throwable =>
+            error("failed to start sentinel client at %s:%s", addr.host, addr.port)
+            m
+        }
     }
   }
 

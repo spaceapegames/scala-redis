@@ -14,16 +14,18 @@ object RedisClient {
   case object MAX extends Aggregate
 }
 
-trait Redis extends IO with Protocol {
+trait Redis extends IO with Protocol with Log{
 
   def send[A](command: String, args: Seq[Any])(result: => A)(implicit format: Format): A = try {
     write(Commands.multiBulk(command.getBytes("UTF-8") +: (args map (format.apply))))
     result
   } catch {
     case e: RedisConnectionException =>
+      error("sending failure", e)
       if (reconnect) send(command, args)(result)
       else throw e
     case e: SocketException =>
+      error("sending failure", e)
       if (reconnect) send(command, args)(result)
       else throw e
   }
@@ -33,9 +35,11 @@ trait Redis extends IO with Protocol {
     result
   } catch {
     case e: RedisConnectionException =>
+      error("sending failure", e)
       if (reconnect) send(command)(result)
       else throw e
     case e: SocketException =>
+      error("sending failure", e)
       if (reconnect) send(command)(result)
       else throw e
   }

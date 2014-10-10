@@ -8,10 +8,17 @@ trait SubCommand { self: Redis =>
     this.synchronized {
       if (pubSub == false) { // already pubsub ing
         pubSub = true
-        new SubscribingThread(this, fn).start()
+        ifDebug("start a new subscribing thread from redis instance "+this.toString)
+        new SubscribingThread(this, fn, subscribingStopped).start()
       }
     }
   }
+  private def subscribingStopped(){
+    this.synchronized {
+      pubSub = false
+    }
+  }
+
   def pSubscribe(channel: String, channels: String*)(fn: PubSubMessage => Any) {
     startSubscribing(fn)
     pSubscribeRaw(channel, channels: _*)

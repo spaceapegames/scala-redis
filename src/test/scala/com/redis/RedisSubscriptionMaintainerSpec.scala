@@ -21,7 +21,7 @@ with Log{
     val maxRetry: Int = -1
     val retryInterval: Long = 1000
     protected def getRedisSub: SubCommand = r
-    protected def reconnect {
+    protected def reconnect = {
       r.reconnect
     }
   }
