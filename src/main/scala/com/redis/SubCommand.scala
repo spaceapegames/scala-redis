@@ -1,21 +1,31 @@
 package com.redis
 
 trait SubCommand { self: Redis =>
-  var pubSub: Boolean = _
+  private var subscribingThread: Option[SubscribingThread] = None
 
   private def startSubscribing(fn: PubSubMessage => Any) {
     //we don't expect huge scale of subscribing requests
     this.synchronized {
-      if (pubSub == false) { // already pubsub ing
-        pubSub = true
+      if (subscribingThread.isEmpty) { // already pubsub ing
         ifDebug("start a new subscribing thread from redis instance "+this.toString)
-        new SubscribingThread(this, fn, subscribingStopped).start()
+        val thread = new SubscribingThread(this, fn, subscribingStopped)
+        subscribingThread = Some(thread)
+        thread.start()
       }
     }
   }
   private def subscribingStopped(){
     this.synchronized {
-      pubSub = false
+      subscribingThread = None
+    }
+  }
+
+  def stopSubscribing {
+    this.synchronized {
+      subscribingThread.foreach{
+        thread =>
+          thread.stopSubscribing
+      }
     }
   }
 

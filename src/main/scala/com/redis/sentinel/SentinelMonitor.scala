@@ -103,6 +103,7 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
   def stop {
     heartBeater.stop
     sentinel.disconnect
+    sentinelSubscriber.stopSubscribing
     sentinelSubscriber.disconnect
   }
 }
@@ -115,7 +116,6 @@ trait SentinelHeartBeater extends Runnable with Log{
 
   def stop {
     running = false
-    sentinelClient.disconnect
   }
   def run {
     running = true
@@ -137,12 +137,14 @@ trait SentinelHeartBeater extends Runnable with Log{
         }
       }catch {
         case e: Throwable =>
-          ifDebug("heart beat is stopped. running status "+running)
+          ifDebug("heart beat is failed. running status "+running)
           if (running){
             error("sentinel heart beat failure")
             heartBeatListener.heartBeatFailure
           }
       }
     }
+    ifDebug("heart beat is stopped. ")
+    sentinelClient.disconnect
   }
 }

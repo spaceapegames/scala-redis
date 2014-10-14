@@ -77,11 +77,19 @@ class SentinelCluster (clusterConfig: SentinelClusterConfig = SentinelClusterCon
       sentinelMonitors -= addr
     }
   }
+
   def getStatus: SentinelClusterStatus = {
     this.synchronized {
       SentinelClusterStatus(sentinelMonitors.keySet, listeners.map(entry => {
         (entry._1 -> entry._2.getNode)
       }).toMap)
+    }
+  }
+
+  def stopCluster {
+    this.synchronized {
+      sentinelMonitors.values.foreach(_.stop)
+      sentinelMonitors = immutable.Map.empty[SentinelAddress, SentinelMonitor]
     }
   }
 }

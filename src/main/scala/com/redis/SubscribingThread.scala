@@ -1,17 +1,15 @@
 package com.redis
 
-class SubscribingThread(redis: Redis, fn: PubSubMessage => Any, threadEnded: () => Unit) extends Runnable with Log{
+class SubscribingThread(redis: Redis, fn: PubSubMessage => Any, threadEnded: () => Unit) extends Thread with Log{
   private var running: Boolean = false
+  private var stopped: Boolean = false
 
-  def start() {
-    new Thread(this).start()
-  }
-
-  def stop {
+  def stopSubscribing {
     running = false
+    stopped = true
   }
 
-  def run {
+  override def run {
     try {
       running = true
       while (running) {
@@ -40,7 +38,9 @@ class SubscribingThread(redis: Redis, fn: PubSubMessage => Any, threadEnded: () 
         error("subscription error", e)
         running = false
         threadEnded()
-        fn(E(e))
+        if (!stopped) {
+          fn(E(e))
+        }
     }
   }
 }
