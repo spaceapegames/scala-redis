@@ -22,18 +22,46 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
     }
   }
 
+  private val newSentinelListener = new SubscriptionReceiver() {
+    def onReceived: String => Unit = msg => {
+      val tokens = msg.split(" ")
+      if (tokens(0) == "sentinel" && tokens.size == 8)
+        listener.addNewSentinelNode(SentinelAddress(tokens(1)))
+      else
+        error("invalid +sentinel message: %s", msg)
+    }
+    def onSubscriptionFailure: () => Unit = () => {
+      listener.subscriptionFailure
+    }
+  }
+
+  private val downListener = new SubscriptionReceiver() {
+    def onReceived: String => Unit = msg => {
+      val tokens = msg.split(" ")
+      if (tokens(0) == "sentinel" && tokens.size == 8)
+        listener.removeSentinelNode(SentinelAddress(tokens(1)))
+      else
+        warn("unsupported +sdown: %s", msg)
+    }
+    def onSubscriptionFailure: () => Unit = () => {
+      listener.subscriptionFailure
+    }
+  }
+
   init
 
   private def init {
     if (config.sentinelSubscriptionEnabled) {
       sentinelSubscriber = new SentinelClient(address)
       this.subscribe("+switch-master", switchMasterListener)
+      this.subscribe("+sentinel", newSentinelListener)
+      this.subscribe("+sdown", downListener)
     }
 
     sentinel = new SentinelClient(address)
     if (config.heartBeatEnabled) {
       heartBeater = new SentinelHeartBeater {
-        def sentinelClient: SentinelClient = new SentinelClient(address)
+        val sentinelClient: SentinelClient = new SentinelClient(address)
         def heartBeatListener: SentinelListener = listener
         def heartBeatInterval: Int = config.heartBeatInterval
       }
@@ -81,7 +109,7 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
 
 trait SentinelHeartBeater extends Runnable with Log{
   private var running = false
-  def sentinelClient: SentinelClient
+  val sentinelClient: SentinelClient
   def heartBeatListener: SentinelListener
   def heartBeatInterval: Int
 

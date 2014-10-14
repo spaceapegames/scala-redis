@@ -26,7 +26,7 @@ trait RedisSubscriptionMaintainer extends Log{
       }
       case M(channel, msg) =>
         try {
-          debug("received %s", msg)
+          debug("received %s at %s", msg, channel)
           channelListeners.get(channel).foreach(_.onReceived(msg))
         } catch {
           case e: Throwable => error("Failed to process message. [%s]", e, e.getMessage)

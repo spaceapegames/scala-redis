@@ -53,4 +53,6 @@ class RedisClientBySentinel(val masterName: String, sentinelCluster: SentinelClu
   }
 
   def getCurrentClient = client
+
+  def getNode: RedisNode = RedisNode(masterName, host, port)
 }

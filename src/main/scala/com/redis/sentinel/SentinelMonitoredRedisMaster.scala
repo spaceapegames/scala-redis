@@ -6,4 +6,5 @@ trait SentinelMonitoredRedisMaster {
   def getMasterName: String
   def onMasterChange (newRedisNode: RedisNode)
   def onMasterHeartBeat (newRedisNode: RedisNode)
+  def getNode: RedisNode
 }

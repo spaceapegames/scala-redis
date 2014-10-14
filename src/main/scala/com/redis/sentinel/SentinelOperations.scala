@@ -28,5 +28,14 @@ trait SentinelOperations { self: Redis =>
   def failover(name: String): Boolean =
     send("SENTINEL", List("FAILOVER", name))(asBoolean)
 
+  def sentinelsByMaster(masterName: String)(implicit format: Format): List[SentinelAddress] = {
+    val addresses =  send("SENTINEL", List("sentinels", masterName))(asListOfListPairs[String, String].map(_.map(_.map(_.flatten.toMap))))  match {
+      case Some(m) => m.collect {
+        case Some(details) => (details("name"), details("ip"), details("port").toInt)
+      }
+      case _ => Nil
+    }
+    addresses.map(v => {SentinelAddress(v._2, v._3)})
+  }
 }
 

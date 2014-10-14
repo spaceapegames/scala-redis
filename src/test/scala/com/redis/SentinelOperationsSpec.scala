@@ -4,7 +4,8 @@ import org.scalatest.{OptionValues, BeforeAndAfterAll, BeforeAndAfterEach, FunSp
 import org.scalatest.matchers.ShouldMatchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import com.redis.sentinel.SentinelClient
+import com.redis.sentinel.{SentinelAddress, SentinelClient}
+import java.net.InetAddress
 
 //@RunWith(classOf[JUnitRunner])
 class SentinelOperationsSpec extends FunSpec
@@ -13,13 +14,13 @@ with BeforeAndAfterEach
 with BeforeAndAfterAll
 with OptionValues {
 
-  val first = ("10.0.10.220", 6379)
-  val firstSlave = ("10.0.13.26", 6379)
-  val second = ("10.0.10.139", 6379)
-  val secondSlave = ("10.0.8.88", 6379)
+  val first = ("10.0.15.154", 6379)
+  val firstSlave = ("10.0.15.155", 6379)
+  val second = ("10.0.15.155", 6380)
+  val secondSlave = ("10.0.15.154", 6380)
 
   val hosts = List(first, firstSlave, second, secondSlave)
-  val sentinels = List(("sandbox-sentinel-1.use1a.apelabs.net", 26379), ("sandbox-sentinel-2.use1a.apelabs.net", 26380), ("sandbox-sentinel-1.use1a.apelabs.net", 26380), ("sandbox-sentinel-2.use1a.apelabs.net", 26380))
+  val sentinels = List(("sandbox-sentinel-i-dd71f533.use1a.apelabs.net", 26379), ("sandbox-sentinel-i-7c877c92.use1a.apelabs.net", 26379), ("sandbox-sentinel-i-7f877c91.use1a.apelabs.net", 26379))
   val hostClients = hosts map Function.tupled(new RedisClient(_, _))
   val sentinelClients = sentinels map Function.tupled(new SentinelClient(_, _))
 
@@ -95,6 +96,21 @@ with OptionValues {
       }
 
       Thread sleep 10000 // wait for sentinels to pick up slaves again
+    }
+  }
+
+  describe("sentinels") {
+    it("should return other sentinel address") {
+      val ipAddrs = sentinels.map{
+        addr =>
+          val address = InetAddress.getByName(addr._1)
+          SentinelAddress(address.getHostAddress, addr._2)
+      }.toSet
+
+      sentinelClients.foreach { client =>
+        val currentAddr = SentinelAddress(client.socket.getInetAddress.getHostAddress, client.port)
+        client.sentinelsByMaster("test-service").toSet should equal((ipAddrs - currentAddr))
+      }
     }
   }
 
