@@ -101,6 +101,7 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
   }
 
   def stop {
+    stopped = true
     heartBeater.stop
     sentinel.disconnect
     sentinelSubscriber.stopSubscribing

@@ -3,6 +3,7 @@ package com.redis
 trait RedisSubscriptionMaintainer extends Log{
   val maxRetry: Int
   val retryInterval: Long
+  var stopped = false
 
   var channelListeners = Map.empty[String, SubscriptionReceiver]
 
@@ -34,7 +35,9 @@ trait RedisSubscriptionMaintainer extends Log{
       case E(exception) => {
         error("redis is not available. restart redis consumer and reconnect to redis", exception)
         channelListeners.values.foreach(_.onSubscriptionFailure())
-        exceptionHandle()
+        if (stopped){
+          exceptionHandle()
+        }
       }
     }
   }
