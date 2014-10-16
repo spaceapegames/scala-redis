@@ -154,6 +154,36 @@ And here's the snippet that throttles our redis server with the above operations
     val tasks = fns map (fn => scala.actors.Futures.future { fn(l) })
     val results = tasks map (future => future.apply())
 
+## Redis with Sentinel
+
+Redis client can be managed by a sentinel cluster. A sentinel cluster can be initialized either by the list of sentinel addresses in the cluster
+
+    val sentinels = Set(
+          SentinelAddress("sandbox-sentinel-i-dd71f533.use1a.apelabs.net", 26379),
+          SentinelAddress("sandbox-sentinel-i-7c877c92.use1a.apelabs.net", 26379),
+          SentinelAddress("sandbox-sentinel-i-7f877c91.use1a.apelabs.net", 26379))
+
+
+    SentinelClusterBuilder(SentinelClusterConfig(), sentinels)
+
+or a load balancer of sentinel cluster
+
+    SentinelClusterBuilder(SentinelClusterConfig(), SentinelAddress("internal-sandbox-sentinel-test-1813530000.us-east-1.elb.amazonaws.com", 26379), Set("test-service", "test-service-2"))
+
+If the sentinel cluster is initialized by a load balancer, you must provide the master names managed in this cluster so that sentinel cluster client can auto discover all sentinel instances behind the load balancer.
+
+Once a sentinel cluster is created, you could create standalone redis client
+
+     new RedisClientBySentinel("test-service", sentinelCluster, (redisNode: RedisNode) => {})
+
+or a redis client pool
+
+     new RedisPoolStorage(new RedisClientPoolBySentinel(configuration.name, sentinelCluster))
+
+or a redis client cluster
+
+     new RedisShards(clusteredHosts) with NoOpKeyTagPolicy with PoolCreationBySentinel
+
 ## License
 
 This software is licensed under the Apache 2 license, quoted below.
