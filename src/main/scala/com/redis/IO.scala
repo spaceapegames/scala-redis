@@ -36,7 +36,7 @@ trait IO extends Log {
     } catch {
       case x: Throwable =>
         clearFd
-        throw new RuntimeException(x)
+        throw new RuntimeException("Cannot connect to %s %s".format(host,port),x)
     }
   }
 
