@@ -36,7 +36,8 @@ trait IO extends Log {
     } catch {
       case x: Throwable =>
         clearFd
-        throw new RuntimeException("Cannot connect to %s %s".format(host,port),x)
+        error("Cannot connect to %s %s", x, host,port)
+        throw new RedisConnectionException("Cannot connect to %s %s".format(host,port))
     }
   }
 
