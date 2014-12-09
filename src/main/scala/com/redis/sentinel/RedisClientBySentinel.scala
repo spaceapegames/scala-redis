@@ -42,6 +42,7 @@ class RedisClientBySentinel(val masterName: String, sentinelCluster: SentinelClu
   def getMasterName: String = masterName
 
   def onMasterChange(newRedisNode: RedisNode) {
+    info("master changed %s %s:%s",newRedisNode.name,newRedisNode.host,newRedisNode.port)
     updateClient(newRedisNode)
   }
 
@@ -56,4 +57,9 @@ class RedisClientBySentinel(val masterName: String, sentinelCluster: SentinelClu
   def getCurrentClient = client
 
   def getNode: RedisNode = RedisNode(masterName, host, port)
+
+  def close {
+    sentinelCluster.removeMonitoredRedisMaster(this)
+    client.disconnect
+  }
 }

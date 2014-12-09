@@ -2,12 +2,10 @@ package com.redis.sentinel
 
 import com.redis.{Log, RedisNode}
 import scala.collection._
-import java.util.concurrent.ConcurrentHashMap
-import scala.collection.JavaConverters._
 
 class SentinelCluster (clusterConfig: SentinelClusterConfig = SentinelClusterConfig()) extends SentinelListener with Log{
   private var sentinelMonitors = immutable.Map.empty[SentinelAddress, SentinelMonitor]
-  private val listeners: concurrent.Map[String, SentinelMonitoredRedisMaster] = new ConcurrentHashMap[String, SentinelMonitoredRedisMaster]().asScala
+  private var listeners = Set.empty[SentinelMonitoredRedisMaster]
 
   def onUpdateSentinels(sentinels: Set[SentinelAddress]){
     sentinels foreach {
@@ -17,20 +15,34 @@ class SentinelCluster (clusterConfig: SentinelClusterConfig = SentinelClusterCon
   }
 
   def addMonitoredRedisMaster(master: SentinelMonitoredRedisMaster) {
-    listeners += (master.getMasterName -> master)
+    this.synchronized {
+      listeners += (master)
+    }
   }
 
-  def removeMonitoredRedisMaster(masterName: String){
-    listeners -= masterName
+  def removeMonitoredRedisMaster(master: SentinelMonitoredRedisMaster){
+    this.synchronized {
+      listeners -= master
+    }
   }
 
   def onMasterChange (redisNode: RedisNode) {
-    listeners.get(redisNode.name).foreach(_.onMasterChange(redisNode))
+    this.synchronized {
+      listeners.filter(_.getMasterName == redisNode.name)
+    }.foreach{
+      listener =>
+        listener.onMasterChange(redisNode)
+    }
   }
   def onMastersHeartBeat (values: List[immutable.Map[String, String]]) {
     values.map(RedisNode(_)).foreach {
       redisNode =>
-        listeners.get(redisNode.name).foreach(_.onMasterHeartBeat(redisNode))
+        this.synchronized {
+          listeners.filter(_.getMasterName == redisNode.name)
+        }.foreach {
+          listener =>
+            listener.onMasterHeartBeat(redisNode)
+        }
     }
   }
 
@@ -102,7 +114,7 @@ class SentinelCluster (clusterConfig: SentinelClusterConfig = SentinelClusterCon
   def getStatus: SentinelClusterStatus = {
     this.synchronized {
       SentinelClusterStatus(sentinelMonitors.keySet, listeners.map(entry => {
-        (entry._1 -> entry._2.getNode)
+        (entry.getMasterName -> entry.getNode)
       }).toMap)
     }
   }

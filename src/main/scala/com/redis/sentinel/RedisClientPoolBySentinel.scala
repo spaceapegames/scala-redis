@@ -43,7 +43,7 @@ class RedisClientPoolBySentinel(val masterName: String, val sentinelCluster: Sen
   }
 
   def close {
-    sentinelCluster.removeMonitoredRedisMaster(masterName)
+    sentinelCluster.removeMonitoredRedisMaster(this)
     pool.close
   }
 }
