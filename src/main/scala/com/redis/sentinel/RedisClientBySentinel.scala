@@ -12,6 +12,7 @@ class RedisClientBySentinel(val masterName: String, sentinelCluster: SentinelClu
   private def init {
     initMasterNode
     reconnectClient
+    sentinelCluster.addMonitoredRedisMaster(this)
   }
 
   private def initMasterNode {
@@ -30,7 +31,7 @@ class RedisClientBySentinel(val masterName: String, sentinelCluster: SentinelClu
 
   private def updateClient(newRedisNode: RedisNode) {
     if (newRedisNode.host != host || newRedisNode.port != port) {
-      ifDebug("redis node address is changing from "+host+":"+port+" to "+newRedisNode.host+":"+newRedisNode.port)
+      info("redis node address is changing from "+host+":"+port+" to "+newRedisNode.host+":"+newRedisNode.port)
       host = newRedisNode.host
       port = newRedisNode.port
       reconnectClient
