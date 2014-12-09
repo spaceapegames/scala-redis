@@ -35,7 +35,7 @@ trait RedisSubscriptionMaintainer extends Log{
       case E(exception) => {
         error("redis is not available. restart redis consumer and reconnect to redis", exception)
         channelListeners.values.foreach(_.onSubscriptionFailure())
-        if (stopped){
+        if (!stopped){
           exceptionHandle()
         }
       }
