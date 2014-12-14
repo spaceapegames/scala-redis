@@ -37,6 +37,9 @@ trait StringOperations { self: Redis =>
   def incrby(key: Any, increment: Int)(implicit format: Format): Option[Long] =
     send("INCRBY", List(key, increment))(asLong)
 
+  def incrbyfloat(key: Any, increment: Float)(implicit format: Format): Option[Float] =
+    send("INCRBYFLOAT", List(key, increment))(asBulk).map(_.toFloat)
+  
   // DECR (key)
   // decrements the specified key by 1
   def decr(key: Any)(implicit format: Format): Option[Long] =

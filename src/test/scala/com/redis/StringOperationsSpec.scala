@@ -116,6 +116,18 @@ class StringOperationsSpec extends FunSpec
     }
   }
 
+  describe("incrbyfloat") {
+    it("should increment values by floats") {
+      r.set("k1", 10.50f)
+      r.incrbyfloat("k1", 0.1f) should be(Some(10.6f))
+      r.set("k1", 5.0e3f)
+      r.incrbyfloat("k1", 2.0e2f) should be(Some(5200f))
+      r.set("k1", "abc")
+      val thrown = the [Exception] thrownBy { r.incrbyfloat("k1", 2.0e2f) }
+      thrown.getMessage should include("value is not a valid float")
+    }
+  }
+
   describe("decr") {
     it("should decrement by 1 for a key that contains a number") {
       r.set("anshin-1", "10") should equal(true)

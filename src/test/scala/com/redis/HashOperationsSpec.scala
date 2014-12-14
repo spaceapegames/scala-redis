@@ -71,5 +71,15 @@ class HashOperationsSpec extends FunSpec
       r.hvals("hash7") should be(Some(List("val1", "val2")))
       r.hgetall("hash7") should be(Some(Map("field1" -> "val1", "field2" -> "val2")))
     }
+
+    it("should increment map values by floats") {
+      r.hset("hash1", "field1", 10.50f)
+      r.hincrbyfloat("hash1", "field1", 0.1f) should be(Some(10.6f))
+      r.hset("hash1", "field1", 5.0e3f)
+      r.hincrbyfloat("hash1", "field1", 2.0e2f) should be(Some(5200f))
+      r.hset("hash1", "field1", "abc")
+      val thrown = the [Exception] thrownBy { r.hincrbyfloat("hash1", "field1", 2.0e2f) }
+      thrown.getMessage should include("hash value is not a valid float")
+    }
   }
 }

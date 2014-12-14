@@ -28,6 +28,9 @@ trait HashOperations { self: Redis =>
   def hincrby(key: Any, field: Any, value: Int)(implicit format: Format): Option[Long] =
     send("HINCRBY", List(key, field, value))(asLong)
   
+  def hincrbyfloat(key: Any, field: Any, value: Float)(implicit format: Format): Option[Float] =
+    send("HINCRBYFLOAT", List(key, field, value))(asBulk).map(_.toFloat)
+  
   def hexists(key: Any, field: Any)(implicit format: Format): Boolean =
     send("HEXISTS", List(key, field))(asBoolean)
   
