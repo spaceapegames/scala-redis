@@ -27,14 +27,14 @@ class RedisSlavePoolsBySentinel(masterName: String, sentinelCluster: SentinelClu
     timer.cancel()
   }
 
-  def getNextSlave: RedisClientPoolByAddress = {
+  def getNextSlave: Option[RedisClientPoolByAddress] = {
     this.synchronized {
       roundrobinCounter += 1
-      if (redisSlaves.size == 0) return null
+      if (redisSlaves.size == 0) return None
       else if (redisSlaves.size <= roundrobinCounter){
         roundrobinCounter = 0
       }
-      redisSlaves(roundrobinCounter)
+      Some(redisSlaves(roundrobinCounter))
     }
   }
 

@@ -28,7 +28,7 @@ with BeforeAndAfterAll {
 
       var list = List.empty[RedisNode]
       for (i <- 0 until 8){
-        list = list.::(pool.getNextSlave.getNode)
+        list = list.::(pool.getNextSlave.get.getNode)
       }
       list.filter(_.name == "localhost:6379").size should equal (4)
       list.filter(_.name == "localhost:6381").size should equal (4)
@@ -38,7 +38,7 @@ with BeforeAndAfterAll {
 
       list = List.empty[RedisNode]
       for (i <- 0 until 8){
-        list = list.::(pool.getNextSlave.getNode)
+        list = list.::(pool.getNextSlave.get.getNode)
       }
 
       list.filter(_.name == "localhost:6379").size should equal (4)
