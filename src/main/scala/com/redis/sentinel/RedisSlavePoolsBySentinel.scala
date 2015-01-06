@@ -4,7 +4,7 @@ import com.redis._
 import java.util.{TimerTask, Date, Timer}
 import com.redis.RedisGenericPoolConfig
 
-class RedisSlavePoolsBySentinel(masterName: String, sentinelCluster: SentinelCluster, val maxIdle: Int = 8, val database: Int = 0, val secret: Option[Any] = None, poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()) {
+class RedisSlavePoolsBySentinel(val masterName: String, sentinelCluster: SentinelCluster, val maxIdle: Int = 8, val database: Int = 0, val secret: Option[Any] = None, poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()) {
   private var redisSlaves: List[RedisClientPoolByAddress] = _
   private val timer = new Timer()
   private var roundrobinCounter = 0
