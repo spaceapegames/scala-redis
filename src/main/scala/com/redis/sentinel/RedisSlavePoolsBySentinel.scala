@@ -45,6 +45,14 @@ class RedisSlavePoolsBySentinel(masterName: String, sentinelCluster: SentinelClu
     }.foreach(_.close)
   }
 
+  def close {
+    stopSlaveSync
+    this.synchronized {
+      redisSlaves.foreach(_.close)
+      redisSlaves = List.empty
+    }
+  }
+
   private class slaveHeartbeat extends TimerTask with Log {
     def run() {
       try {
