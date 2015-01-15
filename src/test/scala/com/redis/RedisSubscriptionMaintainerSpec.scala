@@ -16,13 +16,14 @@ with BeforeAndAfterAll
 with Log{
   val r = new RedisClient("localhost", 6379)
   val pub = new RedisClient("localhost", 6379)
+  val sub = new RedisClient("localhost", 6379)
 
   val underTest = new RedisSubscriptionMaintainer(){
     val maxRetry: Int = -1
     val retryInterval: Long = 1000
-    protected def getRedisSub: SubCommand = r
+    protected def getRedisSub: SubCommand = sub
     protected def reconnect = {
-      r.reconnect
+      sub.reconnect
     }
   }
 
@@ -70,7 +71,7 @@ with Log{
       Await.result(receivedAFuture, 1 second) should be (true)
 
       val receivedBFuture = receivedB.future
-      r.unsubscribe("b")
+      sub.unsubscribe("b")
 
       Await.result(bUnsubscribingStatus, 50 second) should be (true)
       Await.result(bSubscribingStatus, 50 second) should be (true)
