@@ -82,7 +82,17 @@ class SentinelCluster (clusterConfig: SentinelClusterConfig = SentinelClusterCon
             warn("failed to get master node %s from sentinel %s:%s", e, masterName, monitor.sentinel.host, monitor.sentinel.port)
             None
         }
-    }.find(_.isDefined).getOrElse(None).getOrElse(List.empty).filter(_.isDefined).map{
+    }.find(_.isDefined).getOrElse(None).getOrElse(List.empty).filter{valuesOpt =>
+      valuesOpt match{
+        case Some(values) =>
+          values.get("flags") match {
+            case Some(flags) =>
+              flags.indexOf("s_down") == -1
+            case None => true
+          }
+        case None => false
+      }
+    }.map{
       values =>
         RedisNode(values.get)
     }
