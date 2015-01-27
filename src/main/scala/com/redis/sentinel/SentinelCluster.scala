@@ -79,7 +79,7 @@ class SentinelCluster (clusterConfig: SentinelClusterConfig = SentinelClusterCon
           monitor.sentinel.slaves(masterName)
         } catch {
           case e: Exception =>
-            warn("failed to get master node %s from sentinel %s:%s", e, masterName, monitor.sentinel.host, monitor.sentinel.port)
+            warn("failed to get slaves for master %s from sentinel %s:%s", e, masterName, monitor.sentinel.host, monitor.sentinel.port)
             None
         }
     }.find(_.isDefined).getOrElse(None).getOrElse(List.empty).filter{valuesOpt =>
