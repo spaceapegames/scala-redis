@@ -10,7 +10,7 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
   val maxRetry: Int = config.maxSentinelMonitorRetry
   val retryInterval: Long = config.sentinelRetryInterval
 
-  private[sentinel] var sentinel: SentinelClient = _
+  private[sentinel] var sentinel: SentinelClientPool = _
   private[sentinel] var sentinelSubscriber: SentinelClient = _
   private var heartBeater: SentinelHeartBeater = _
   private val switchMasterListener = new SubscriptionReceiver() {
@@ -58,7 +58,7 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
       this.subscribe("+sdown", downListener)
     }
 
-    sentinel = new SentinelClient(address)
+    sentinel = new SentinelClientPool(address)
     if (config.heartBeatEnabled) {
       heartBeater = new SentinelHeartBeater {
         val sentinelClient: SentinelClient = new SentinelClient(address)
@@ -103,7 +103,7 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
   def stop {
     stopped = true
     heartBeater.stop
-    sentinel.disconnect
+    sentinel.close
     sentinelSubscriber.stopSubscribing
     sentinelSubscriber.disconnect
   }

@@ -4,7 +4,7 @@ import serialization._
 
   // SORT
   // sort keys in a set, and optionally pull values for them
-trait Operations { self: Redis =>
+trait Operations extends ConnectionCommand{ self: Redis =>
   def sort[A](key:String, limit:Option[Pair[Int, Int]] = None, desc:Boolean = false, alpha:Boolean = false, by:Option[String] = None, get:List[String] = Nil)(implicit format:Format, parse:Parse[A]):Option[List[Option[A]]] = {
     val commands:List[Any] =
       List(List(key), limit.map(l => List("LIMIT", l._1, l._2)).getOrElse(Nil)
@@ -89,17 +89,6 @@ trait Operations { self: Redis =>
   // returns the remaining time to live of a key that has a timeout in millis
   def pttl(key: Any)(implicit format: Format): Option[Long] =
     send("PTTL", List(key))(asLong)
-
-  // SELECT (index)
-  // selects the DB to connect, defaults to 0 (zero).
-  def select(index: Int): Boolean =
-    send("SELECT", List(index))(asBoolean match {
-      case true => {
-        db = index
-        true
-      }
-      case _ => false
-    })
     
   
   // FLUSHDB the DB
@@ -117,19 +106,5 @@ trait Operations { self: Redis =>
   def move(key: Any, db: Int)(implicit format: Format): Boolean =
     send("MOVE", List(key, db))(asBoolean)
   
-  // QUIT
-  // exits the server.
-  def quit: Boolean =
-    send("QUIT")(disconnect)
-  
-  // AUTH
-  // auths with the server.
-  def auth(secret: Any)(implicit format: Format): Boolean =
-    send("AUTH", List(secret))(asBoolean)
 
-  def ping: Option[String] =
-    send("PING")(asString)
-
-  def echo[A](data: String)(implicit format: Format, parse: Parse[A]): Option[A] =
-    send("ECHO", List(data))(asBulk)
 }
