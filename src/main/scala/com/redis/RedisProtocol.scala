@@ -32,9 +32,6 @@ private [redis] object Commands {
 
 import Commands._
 
-case class RedisConnectionException(message: String) extends RuntimeException(message)
-case class RedisMultiExecException(message: String) extends RuntimeException(message)
-
 private [redis] trait Reply {
 
   type Reply[T] = PartialFunction[(Char, Array[Byte]), T]
@@ -95,13 +92,13 @@ private [redis] trait Reply {
         case -1 => None
         case n if n == handlers.size => 
           Some(handlers.map(_.apply).toList)
-        case n => throw new Exception("Protocol error: Expected "+handlers.size+" results, but got "+n)
+        case n => throw new RedisProtocolParsingException("Protocol error: Expected "+handlers.size+" results, but got "+n)
       }
   }
 
   val errReply: Reply[Nothing] = {
-    case (ERR, s) => reconnect; throw new Exception(Parsers.parseString(s))
-    case x => reconnect; throw new Exception("Protocol error: Got " + x + " as initial reply byte")
+    case (ERR, s) => reconnect; throw new RedisProtocolParsingException(Parsers.parseString(s))
+    case x => reconnect; throw new RedisProtocolParsingException("Protocol error: Got " + x + " as initial reply byte")
   }
 
   def queuedReplyInt: Reply[Option[Int]] = {
