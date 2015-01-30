@@ -14,7 +14,7 @@ class RedisSlavePoolsBySentinel(val masterName: String, sentinelCluster: Sentine
     this.synchronized {
       redisSlaves = sentinelCluster.getSlaves(masterName).map {
         redisNode =>
-          new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig)
+          new RedisClientPoolByAddress(new RedisNode(redisNode.host + ":" + String.valueOf(redisNode.port), redisNode.host, redisNode.port, maxIdle, database, secret), poolConfig)
       }
     }
   }
@@ -70,7 +70,7 @@ class RedisSlavePoolsBySentinel(val masterName: String, sentinelCluster: Sentine
 
         val newSlaves = newNodes.toList.map{
           redisNode =>
-            new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig)
+            new RedisClientPoolByAddress(new RedisNode(redisNode.host + ":" + String.valueOf(redisNode.port), redisNode.host, redisNode.port, maxIdle, database, secret), poolConfig)
         }
         //add new nodes
         this.synchronized{

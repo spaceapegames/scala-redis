@@ -9,7 +9,4 @@ class SentinelClientPool (val node: RedisNode, val poolConfig: RedisClientPoolCo
   def this(addr: SentinelAddress, poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()){
     this(RedisNode(addr.host + ":" + String.valueOf(addr.port), addr.host, addr.port), poolConfig)
   }
-  def this(host: String, port: Int, maxIdle: Int = 8, database: Int = 0, secret: Option[Any] = None, poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()) {
-    this(RedisNode(host + ":" + String.valueOf(port), host, port, maxIdle, database, secret), poolConfig)
-  }
 }

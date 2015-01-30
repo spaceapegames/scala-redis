@@ -4,7 +4,7 @@
 
 	<groupId>org.redis</groupId>
 	<artifactId>scala-redis_${scala.version}</artifactId>
-	<version>0.0.17</version>
+	<version>0.0.18-SNAPSHOT</version>
     <name>Scala Redis</name>
     <description>
         # Redis Scala client
@@ -37,21 +37,22 @@
     </licenses>
 
 	<properties>
-		<scala.version>2.10.0</scala.version>
+                <scalalib.version>2.11.4</scalalib.version>
+		<scala.version>2.11</scala.version>
 		<junit.version>4.9</junit.version>
-		<scalatest.version>2.0.M5</scalatest.version>
+		<scalatest.version>2.2.2</scalatest.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.scala-lang</groupId>
 			<artifactId>scala-library</artifactId>
-			<version>${scala.version}</version>
+			<version>${scalalib.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.scala-lang</groupId>
 			<artifactId>scala-actors</artifactId>
-			<version>${scala.version}</version>
+			<version>${scalalib.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-pool</groupId>

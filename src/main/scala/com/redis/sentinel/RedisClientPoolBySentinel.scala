@@ -11,7 +11,7 @@ class RedisClientPoolBySentinel(val masterName: String, val sentinelCluster: Sen
 
   private def init {
     val redisNode = sentinelCluster.getMasterNode(masterName).getOrElse(throw new RedisMasterNotFoundException(masterName))
-    pool = new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig)
+    pool = new RedisClientPoolByAddress(new RedisNode(redisNode.host + ":" + String.valueOf(redisNode.port), redisNode.host, redisNode.port, maxIdle, database, secret), poolConfig)
     sentinelCluster.addMonitoredRedisMaster(this)
   }
   def poolName: String = masterName
@@ -36,7 +36,7 @@ class RedisClientPoolBySentinel(val masterName: String, val sentinelCluster: Sen
       return
     }
     info("pool updated %s %s:%s",redisNode.name,redisNode.host,redisNode.port)
-    val newPool = new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig)
+    val newPool = new RedisClientPoolByAddress(new RedisNode(redisNode.host + ":" + String.valueOf(redisNode.port), redisNode.host, redisNode.port, maxIdle, database, secret), poolConfig)
     val oldPool = pool
     pool = newPool
     oldPool.close

@@ -12,10 +12,6 @@ trait RedisClientPool {
 
 class RedisClientPoolByAddress (val node: RedisNode, val poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()) extends RedisPoolByAddressBase[RedisClient] with RedisClientPool{
   protected def newClientFactory: PoolableObjectFactory[RedisClient] = new RedisClientFactory(node)
-
-  def this(host: String, port: Int, maxIdle: Int = 8, database: Int = 0, secret: Option[Any] = None, poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()) {
-    this(RedisNode(host + ":" + String.valueOf(port), host, port, maxIdle, database, secret), poolConfig)
-  }
 }
 trait RedisPoolByAddressBase[R <: Redis]
   {

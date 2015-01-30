@@ -16,7 +16,7 @@ class PoolSpec extends FunSpec
                with BeforeAndAfterEach
                with BeforeAndAfterAll {
 
-  implicit val clients = new RedisClientPoolByAddress("localhost", 6379)
+  implicit val clients = new RedisClientPoolByAddress(new RedisNode("localhost:6379", "localhost", 6379))
 
   override def beforeEach = {
   }
