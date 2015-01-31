@@ -3,7 +3,7 @@ package com.redis.sentinel
 import com.redis._
 import com.redis.RedisGenericPoolConfig
 
-class RedisClientPoolBySentinel(val masterName: String, val sentinelCluster: SentinelCluster, val maxIdle: Int = 8, val database: Int = 0, val secret: Option[Any] = None, poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()) extends RedisClientPool with Log
+class RedisClientPoolBySentinel(val masterName: String, val sentinelCluster: SentinelCluster, val maxIdle: Int = 8, val database: Int = 0, val secret: Option[Any] = None, poolConfig: RedisClientPoolConfig, poolListener: Option[PoolListener]) extends RedisClientPool with Log
   with SentinelMonitoredRedisMaster{
 
   private var pool: RedisClientPoolByAddress = null
@@ -11,7 +11,7 @@ class RedisClientPoolBySentinel(val masterName: String, val sentinelCluster: Sen
 
   private def init {
     val redisNode = sentinelCluster.getMasterNode(masterName).getOrElse(throw new RedisMasterNotFoundException(masterName))
-    pool = new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig)
+    pool = new RedisClientPoolByAddress(redisNode.copy(maxIdle = maxIdle, database = database, secret = secret), poolConfig, poolListener)
     sentinelCluster.addMonitoredRedisMaster(this)
   }
   def poolName: String = masterName
@@ -36,7 +36,7 @@ class RedisClientPoolBySentinel(val masterName: String, val sentinelCluster: Sen
       return
     }
     info("pool updated %s %s:%s",redisNode.name,redisNode.host,redisNode.port)
-    val newPool = new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig)
+    val newPool = new RedisClientPoolByAddress(redisNode.copy(maxIdle = maxIdle, database = database, secret = secret), poolConfig)
     val oldPool = pool
     pool = newPool
     oldPool.close
@@ -50,8 +50,9 @@ class RedisClientPoolBySentinel(val masterName: String, val sentinelCluster: Sen
 
 trait PoolCreationBySentinel {
   def getSentinelCluster: SentinelCluster
+  def poolListener: Option[PoolListener]
 
   def poolCreator (node: RedisNode, poolConfig: RedisClientPoolConfig): RedisClientPool = {
-    new RedisClientPoolBySentinel(node.name, getSentinelCluster, node.maxIdle, node.database, node.secret, poolConfig)
+    new RedisClientPoolBySentinel(node.name, getSentinelCluster, node.maxIdle, node.database, node.secret, poolConfig, poolListener)
   }
 }

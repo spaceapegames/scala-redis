@@ -4,7 +4,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FunSpec}
 import org.scalatest.matchers.ShouldMatchers
-import com.redis.RedisNode
+import com.redis.{RedisGenericPoolConfig, RedisNode}
 
 @RunWith(classOf[JUnitRunner])
 class RedisSlavePoolsBySentinelSpec  extends FunSpec
@@ -23,7 +23,7 @@ with BeforeAndAfterAll {
             List(RedisNode("localhost:6379", "localhost", 6379), RedisNode("localhost:6380", "localhost", 6380))
         }
       }
-      val pool = new RedisSlavePoolsBySentinel("test-service", sentinelCluster)
+      val pool = new RedisSlavePoolsBySentinel("test-service", sentinelCluster, poolConfig = RedisGenericPoolConfig(), poolListener = None)
       pool.startSlaveSync(100)
 
       var list = List.empty[RedisNode]

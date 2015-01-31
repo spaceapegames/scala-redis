@@ -10,11 +10,17 @@ trait RedisClientPool {
   def getNode: RedisNode
 }
 
-class RedisClientPoolByAddress (val node: RedisNode, val poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()) extends RedisPoolByAddressBase[RedisClient] with RedisClientPool{
-  protected def newClientFactory: PoolableObjectFactory[RedisClient] = new RedisClientFactory(node)
+class RedisClientPoolByAddress (val node: RedisNode, val poolConfig: RedisClientPoolConfig, poolListener: Option[PoolListener]) extends RedisPoolByAddressBase[RedisClient] with RedisClientPool{
+  protected def newClientFactory: PoolableObjectFactory[RedisClient] = new RedisClientFactory(node, poolListener)
 
-  def this(host: String, port: Int, maxIdle: Int = 8, database: Int = 0, secret: Option[Any] = None, poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()) {
-    this(RedisNode(host + ":" + String.valueOf(port), host, port, maxIdle, database, secret), poolConfig)
+  def this(node: RedisNode){
+    this(node, RedisGenericPoolConfig(), None)
+  }
+  def this(node: RedisNode, poolConfig: RedisClientPoolConfig){
+    this(node, poolConfig, None)
+  }
+  def this(host: String, port: Int, maxIdle: Int, database: Int, secret: Option[Any], poolConfig: RedisClientPoolConfig, poolListener: Option[PoolListener]) {
+    this(RedisNode(host + ":" + String.valueOf(port), host, port, maxIdle, database, secret), poolConfig, poolListener)
   }
 }
 trait RedisPoolByAddressBase[R <: Redis]
@@ -56,7 +62,8 @@ trait RedisPoolByAddressBase[R <: Redis]
 }
 
 trait PoolCreationByAddress {
+  def poolListener: Option[PoolListener]
   def poolCreator (node: RedisNode, poolConfig: RedisClientPoolConfig): RedisClientPool = {
-    new RedisClientPoolByAddress(node, poolConfig)
+    new RedisClientPoolByAddress(node, poolConfig, poolListener)
   }
 }

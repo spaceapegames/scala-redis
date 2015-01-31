@@ -4,7 +4,7 @@ import com.redis._
 import java.util.{TimerTask, Date, Timer}
 import com.redis.RedisGenericPoolConfig
 
-class RedisSlavePoolsBySentinel(val masterName: String, sentinelCluster: SentinelCluster, val maxIdle: Int = 8, val database: Int = 0, val secret: Option[Any] = None, poolConfig: RedisClientPoolConfig = RedisGenericPoolConfig()) {
+class RedisSlavePoolsBySentinel(val masterName: String, sentinelCluster: SentinelCluster, val maxIdle: Int = 8, val database: Int = 0, val secret: Option[Any] = None, poolConfig: RedisClientPoolConfig, poolListener: Option[PoolListener]) {
   private var redisSlaves: List[RedisClientPoolByAddress] = _
   private val timer = new Timer()
   private var roundrobinCounter = 0
@@ -14,7 +14,7 @@ class RedisSlavePoolsBySentinel(val masterName: String, sentinelCluster: Sentine
     this.synchronized {
       redisSlaves = sentinelCluster.getSlaves(masterName).map {
         redisNode =>
-          new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig)
+          new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig, poolListener)
       }
     }
   }
@@ -54,6 +54,12 @@ class RedisSlavePoolsBySentinel(val masterName: String, sentinelCluster: Sentine
     }
   }
 
+  def pools = {
+    this.synchronized {
+      redisSlaves.map(slave => {(slave.node, slave.pool.getNumActive)})
+    }
+  }
+
   private class slaveHeartbeat extends TimerTask with Log {
     def run() {
       try {
@@ -70,7 +76,7 @@ class RedisSlavePoolsBySentinel(val masterName: String, sentinelCluster: Sentine
 
         val newSlaves = newNodes.toList.map{
           redisNode =>
-            new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig)
+            new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig, poolListener)
         }
         //add new nodes
         this.synchronized{

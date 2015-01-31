@@ -7,16 +7,13 @@ import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
-import scala.actors._
-import scala.actors.Actor._
-
 @RunWith(classOf[JUnitRunner])
 class PoolSpec extends FunSpec 
                with ShouldMatchers
                with BeforeAndAfterEach
                with BeforeAndAfterAll {
 
-  implicit val clients = new RedisClientPoolByAddress("localhost", 6379)
+  implicit val clients = new RedisClientPoolByAddress(RedisNode("localhost", "localhost", 6379))
 
   override def beforeEach = {
   }
