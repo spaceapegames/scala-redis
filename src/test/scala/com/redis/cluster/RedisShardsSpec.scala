@@ -6,7 +6,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
-import com.redis.{PoolCreationByAddress, RedisNode, RedisClientPoolByAddress, RedisClient}
+import com.redis._
 import com.redis.serialization.Format
 
 
@@ -17,7 +17,9 @@ with BeforeAndAfterEach
 with BeforeAndAfterAll {
 
   val nodes = List(RedisNode("node1", "localhost", 6379), RedisNode("node2", "localhost", 6380), RedisNode("node3", "localhost", 6381))
-  val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy
+  val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy {
+    def poolListener: Option[PoolListener] = None
+  }
 
   override def beforeEach = {}
 
@@ -102,7 +104,9 @@ with BeforeAndAfterAll {
     }
 
     it("replace node should not change hash ring order") {
-      val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy
+      val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy {
+        def poolListener: Option[PoolListener] = None
+      }
 
       r.set("testkey1", "testvalue2")
       r.get("testkey1") should equal(Some("testvalue2"))
@@ -125,7 +129,9 @@ with BeforeAndAfterAll {
     }
 
     it("remove failure node should change hash ring order so that key on failure node should be served by other running nodes") {
-      val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy
+      val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy {
+        def poolListener: Option[PoolListener] = None
+      }
 
       r.set("testkey1", "testvalue2")
       r.get("testkey1") should equal(Some("testvalue2"))
@@ -141,7 +147,9 @@ with BeforeAndAfterAll {
     }
 
     it("list nodes should return the running nodes but not configured nodes") {
-      val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy
+      val r = new RedisShards(nodes) with PoolCreationByAddress with RegexKeyTagPolicy {
+        def poolListener: Option[PoolListener] = None
+      }
       r.listServers.toSet should equal(nodes.toSet)
       r.removeServer("node1")
       r.listServers.toSet should equal(nodes.filterNot(_.name.equals("node1")).toSet)
