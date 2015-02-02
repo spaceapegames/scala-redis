@@ -1,6 +1,6 @@
 package com.redis
 
 trait PoolListener {
-  def onMakeObject
-  def onDestroyObject
+  def onMakeObject(node: RedisNode)
+  def onDestroyObject(node: RedisNode)
 }

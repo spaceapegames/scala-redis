@@ -14,7 +14,7 @@ private [redis] class RedisClientFactory(node: RedisNode, listener: Option[PoolL
     if (node.database != 0)
       cl.select(node.database)
     node.secret.foreach(cl auth _)
-    listener.foreach(_.onMakeObject)
+    listener.foreach(_.onMakeObject(node))
     cl
   }
 
@@ -22,7 +22,7 @@ private [redis] class RedisClientFactory(node: RedisNode, listener: Option[PoolL
   def destroyObject(rc: RedisClient): Unit = {
     rc.quit // need to quit for closing the connection
     rc.disconnect // need to disconnect for releasing sockets
-    listener.foreach(_.onDestroyObject)
+    listener.foreach(_.onDestroyObject(node))
   }
 
   // noop: we want to have it connected

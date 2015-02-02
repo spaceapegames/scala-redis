@@ -38,7 +38,9 @@ trait RedisPoolByAddressBase[R <: Redis]
   private def initPool = {
     if (poolConfig.isInstanceOf[RedisGenericPoolConfig]) {
       val genericConfig = poolConfig.asInstanceOf[RedisGenericPoolConfig]
-      new GenericObjectPool(newClientFactory, genericConfig.maxActive, genericConfig.whenExhaustedAction, genericConfig.maxWait, genericConfig.maxIdle)
+      val p = new GenericObjectPool(newClientFactory, genericConfig.maxActive, genericConfig.whenExhaustedAction, genericConfig.maxWait, genericConfig.maxIdle)
+      p.setTestOnBorrow(true)
+      p
     }
     else new StackObjectPool(newClientFactory, poolConfig.maxIdle)
   }

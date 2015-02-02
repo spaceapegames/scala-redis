@@ -76,6 +76,7 @@ class RedisSlavePoolsBySentinel(val masterName: String, sentinelCluster: Sentine
 
         val newSlaves = newNodes.toList.map{
           redisNode =>
+            ifDebug("init new slave pool %s:%s".format(redisNode.host, redisNode.port))
             new RedisClientPoolByAddress(redisNode.host, redisNode.port, maxIdle, database, secret, poolConfig, poolListener)
         }
         //add new nodes
