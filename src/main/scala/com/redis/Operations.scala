@@ -109,13 +109,7 @@ trait Operations extends ConnectionCommand{ self: Redis =>
   def scan[T](pattern: Option[Any] = None, limitOpt: Option[Int] = None, batchSize: Option[Int] = None)(f: List[String] => T) {
     var nextCursor = 0
 
-    var params = List.empty[Any]
-    pattern.foreach {
-      p => params = params.::(p).::("match")
-    }
-    batchSize.foreach {
-      b => params = params.::(b).::("count")
-    }
+    val params = batchSize.toList.flatMap(List("count", _)):::pattern.toList.flatMap(List("match", _))
 
     val process = () => {
       val rs = send("SCAN", params.::(nextCursor))(asScanResult[String])
