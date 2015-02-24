@@ -181,9 +181,9 @@ class OperationsSpec extends FunSpec
       r.set("testkey3", "testvalue")
 
       var scanCount = 0
-      r.scan(Some("*key*")){
+      r.scan(Some("*key2*")){
         keys =>
-          keys.size should equal (4)
+          keys.size should equal (2)
           scanCount += 1
       }
       scanCount should equal (1)

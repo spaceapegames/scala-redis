@@ -38,7 +38,7 @@ private [redis] trait Reply {
   type SingleReply = Reply[Option[Array[Byte]]]
   type MultiReply = Reply[Option[List[Option[Array[Byte]]]]]
   type MultiMultiReply = Reply[Option[List[Option[List[Option[Array[Byte]]]]]]]
-  type ScanReplay = Reply[(Int, Option[List[Option[Array[Byte]]]])]
+  type ScanReply = Reply[(Int, Option[List[Option[Array[Byte]]]])]
 
   def readLine: Array[Byte]
   def readCounted(c: Int): Array[Byte]
@@ -78,7 +78,7 @@ private [redis] trait Reply {
         case n => Some(List.fill(n)(receive(bulkReply orElse singleLineReply)))
       }
   }
-  val scanReply: ScanReplay = {
+  val scanReply: ScanReply = {
     case (MULTI, str) =>
       Parsers.parseInt(str) match {
         case 2 =>
