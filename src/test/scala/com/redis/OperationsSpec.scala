@@ -158,4 +158,64 @@ class OperationsSpec extends FunSpec
       }
     }
   }
+
+  describe("scan") {
+    it("should give all keys") {
+      r.set("testkey", "testvalue")
+
+      var scanCount = 0
+      r.scan(){
+        keys =>
+          assert(keys.size > 0)
+          scanCount += 1
+      }
+      scanCount should equal (1)
+    }
+  }
+
+  describe("pattern match scan") {
+    it("should give all matched keys") {
+      r.set("testkey", "testvalue")
+      r.set("testkey2", "testvalue")
+      r.set("testkey22", "testvalue")
+      r.set("testkey3", "testvalue")
+
+      var scanCount = 0
+      r.scan(Some("*key*")){
+        keys =>
+          keys.size should equal (4)
+          scanCount += 1
+      }
+      scanCount should equal (1)
+    }
+  }
+
+  describe("scan with limit") {
+    it("should give numer of limited keys") {
+      r.set("testkey", "testvalue")
+      r.set("testkey2", "testvalue")
+      r.set("testkey22", "testvalue")
+      r.set("testkey3", "testvalue")
+
+      var scanCount = 0
+      r.scan(Some("*key*"), Some(2)){
+        keys =>
+          keys.size should equal (2)
+          scanCount += 1
+      }
+      scanCount should equal (1)
+    }
+  }
+
+  describe("scan non-exist key pattern") {
+    it("should give empty list") {
+      var scanCount = 0
+      r.scan(Some("impossibleToHave")){
+        keys =>
+          keys.size should equal (0)
+          scanCount += 1
+      }
+      scanCount should equal (1)
+    }
+  }
 }

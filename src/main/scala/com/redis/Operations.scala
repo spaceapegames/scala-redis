@@ -106,5 +106,40 @@ trait Operations extends ConnectionCommand{ self: Redis =>
   def move(key: Any, db: Int)(implicit format: Format): Boolean =
     send("MOVE", List(key, db))(asBoolean)
   
+  def scan[T](pattern: Option[Any] = None, limitOpt: Option[Int] = None, batchSize: Option[Int] = None)(f: List[String] => T) {
+    var nextCursor = 0
 
+    var params = List.empty[Any]
+    pattern.foreach {
+      p => params = params.::(p).::("match")
+    }
+    batchSize.foreach {
+      b => params = params.::(b).::("count")
+    }
+
+    val process = () => {
+      val rs = send("SCAN", params.::(nextCursor))(asScanResult[String])
+      nextCursor = rs._1
+      rs._2.getOrElse(List.empty).filter(_.isDefined).map(_.get)
+    }: List[String]
+
+    limitOpt match {
+      case None =>
+        do {
+          f (process())
+        } while (nextCursor != 0)
+      case Some(limit) =>
+        var totalLoadedKeys = 0
+        do {
+          var keys = process()
+          totalLoadedKeys += keys.size
+          val exceed = totalLoadedKeys - limit
+          if (exceed > 0){
+            keys = keys.slice(0, keys.size - exceed)
+          }
+          f (keys)
+        }while (nextCursor != 0 && totalLoadedKeys < limit)
+    }
+
+  }
 }

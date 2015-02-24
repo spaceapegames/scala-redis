@@ -38,6 +38,7 @@ private [redis] trait Reply {
   type SingleReply = Reply[Option[Array[Byte]]]
   type MultiReply = Reply[Option[List[Option[Array[Byte]]]]]
   type MultiMultiReply = Reply[Option[List[Option[List[Option[Array[Byte]]]]]]]
+  type ScanReplay = Reply[(Int, Option[List[Option[Array[Byte]]]])]
 
   def readLine: Array[Byte]
   def readCounted(c: Int): Array[Byte]
@@ -75,6 +76,17 @@ private [redis] trait Reply {
       Parsers.parseInt(str) match {
         case -1 => None
         case n => Some(List.fill(n)(receive(bulkReply orElse singleLineReply)))
+      }
+  }
+  val scanReply: ScanReplay = {
+    case (MULTI, str) =>
+      Parsers.parseInt(str) match {
+        case 2 =>
+          receive(bulkReply) match {
+            case None => throw new RedisProtocolParsingException("No cursor returned in scan %s".format(str))
+            case Some(cursorLine) => (Parsers.parseInt(cursorLine), receive(multiBulkReply))
+          }
+        case _ => throw new RedisProtocolParsingException("Unrecognised multi indicator %s".format(str))
       }
   }
 
@@ -165,6 +177,11 @@ private [redis] trait R extends Reply {
   def asSet[T: Parse]: Option[Set[Option[T]]] = asList map (_.toSet)
 
   def asAny = receive(integerReply orElse singleLineReply orElse bulkReply orElse multiBulkReply)
+
+  def asScanResult[T](implicit parse: Parse[T]): (Int, Option[List[Option[T]]]) = {
+    val rs = receive(scanReply)
+    (rs._1, rs._2.map(_.map(_.map(parse))))
+  }
 }
 
 trait Protocol extends R
