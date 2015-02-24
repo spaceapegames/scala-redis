@@ -114,7 +114,7 @@ trait Operations extends ConnectionCommand{ self: Redis =>
     val process = () => {
       val rs = send("SCAN", params.::(nextCursor))(asScanResult[String])
       nextCursor = rs._1
-      rs._2.getOrElse(List.empty).filter(_.isDefined).map(_.get)
+      rs._2.getOrElse(List.empty).flatten
     }: List[String]
 
     limitOpt match {
