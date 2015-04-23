@@ -108,7 +108,9 @@ trait IO extends Log {
     val arr = new Array[Byte](count)
     var cur = 0
     while (cur < count) {
-      cur += in.read(arr, cur, count - cur)
+      val read = in.read(arr, cur, count - cur)
+      if(read < 0) return null
+      cur += read
     }
     arr
   }
