@@ -38,6 +38,7 @@ object Parse {
     implicit val parseInt = Parse[Int](new String(_, "UTF-8").toInt)
     implicit val parseLong = Parse[Long](new String(_, "UTF-8").toLong)
     implicit val parseDouble = Parse[Double](new String(_, "UTF-8").toDouble)
+    implicit val parseBoolean = Parse[Boolean](new String(_, "UTF-8").toBoolean)
   }
 
   implicit val parseDefault = Parse[String](new String(_, "UTF-8"))
