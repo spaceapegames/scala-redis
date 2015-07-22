@@ -4,7 +4,7 @@
 
 	<groupId>org.redis</groupId>
 	<artifactId>scala-redis_${scala.version}</artifactId>
-	<version>0.0.20-SNAPSHOT</version>
+	<version>0.0.20</version>
     <name>Scala Redis</name>
     <description>
         # Redis Scala client
@@ -143,7 +143,7 @@
 	</build>
 	<scm>
 		<connection>scm:git:git@github.com:spaceapegames/scala-redis.git</connection>
-		<tag>scm:git:git@github.com:spaceapegames/scala-redis.git</tag>
+		<tag>scala-redis_2.11-0.0.20</tag>
 		<url>scm:git:git@github.com:spaceapegames/scala-redis.git</url>
 		<developerConnection>scm:git:git@github.com:spaceapegames/scala-redis.git</developerConnection>
 	</scm>
