@@ -137,6 +137,17 @@ class SentinelCluster (clusterConfig: SentinelClusterConfig = SentinelClusterCon
     }
   }
 
+  def getHeartBeatStatus: Boolean = {
+    if (clusterConfig.heartBeatEnabled) {
+      this.synchronized {
+        // At least one sentinel needs to be alive.
+        sentinelMonitors.values.map{_.isHeartBeating}.exists(_ == true)
+      }
+    } else {
+      true
+    }
+  }
+
   def stopCluster {
     this.synchronized {
       sentinelMonitors.values.foreach(_.stop)
