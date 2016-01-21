@@ -68,7 +68,7 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
         def heartBeatListener: SentinelListener = listener
         def heartBeatInterval: Int = config.heartBeatInterval
       })
-      heartBeater.map(new Thread(_).start())
+      heartBeater.foreach(new Thread(_).start())
     }
   }
 
@@ -109,7 +109,7 @@ class SentinelMonitor (address: SentinelAddress, listener: SentinelListener, con
 
   def stop {
     stopped = true
-    heartBeater.map(_.stop)
+    heartBeater.foreach(_.stop)
     sentinel.close
     sentinelSubscriber.stopSubscribing
     sentinelSubscriber.disconnect

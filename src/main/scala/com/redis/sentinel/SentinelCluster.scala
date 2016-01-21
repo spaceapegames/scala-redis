@@ -141,7 +141,7 @@ class SentinelCluster (clusterConfig: SentinelClusterConfig = SentinelClusterCon
     if (clusterConfig.heartBeatEnabled) {
       this.synchronized {
         // At least one sentinel needs to be alive.
-        sentinelMonitors.values.map{_.isHeartBeating}.exists(_ == true)
+        sentinelMonitors.values.exists(_.isHeartBeating)
       }
     } else {
       true
