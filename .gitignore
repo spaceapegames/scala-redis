@@ -8,3 +8,4 @@ project/boot
 .settings
 .idea*
 *.iml
+dump*

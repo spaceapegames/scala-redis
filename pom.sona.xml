@@ -19,7 +19,15 @@
         - Support for Redis Sentinel
     </description>
     <url>https://github.com/spaceapegames/scala-redis</url>
-
+    <developers>
+        <developer>
+            <id>ke</id>
+            <name>Ke</name>
+            <url>http://eric.propellors.net</url>
+            <organization>spaceapegames</organization>
+            <organizationUrl>http://www.spaceapegames.com</organizationUrl>
+        </developer>
+    </developers>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -29,7 +37,7 @@
     </licenses>
 
 	<properties>
-        <scalalib.version>2.11.4</scalalib.version>
+                <scalalib.version>2.11.4</scalalib.version>
 		<scala.version>2.11</scala.version>
 		<junit.version>4.9</junit.version>
 		<scalatest.version>2.2.2</scalatest.version>
@@ -120,6 +128,17 @@
 					</includes>
 				</configuration>
 			</plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.2</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
 	<scm>
@@ -130,15 +149,55 @@
 	</scm>
 
 	<distributionManagement>
-		<repository>
-			<id>spaceapegames</id>
-			<url>http://spaceapegames.artifactoryonline.com/spaceapegames/libs-releases-local</url>
-		</repository>
-		<snapshotRepository>
-			<id>spaceapegames</id>
-			<url>http://spaceapegames.artifactoryonline.com/spaceapegames/libs-snapshots-local</url>
-		</snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
 	</distributionManagement>
 
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.scala-tools</groupId>
+                        <artifactId>maven-scala-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    <!-- mvn scala:doc-jar deploy -Dmaven.test.skip=true -P release -->
 </project>
 
