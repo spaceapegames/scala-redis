@@ -61,7 +61,7 @@ trait RedisCommand extends Redis
   with EvalOperations
   
 
-class RedisClient(val host: String, val port: Int)
+class RedisClient(val host: String, val port: Int, override val timeout: Int = 0, override val connectionTimeout: Int = 0)
   extends RedisCommand with PubCommand with SubCommand {
 
   connect
@@ -152,8 +152,10 @@ class RedisClient(val host: String, val port: Int)
       null.asInstanceOf[A]
     }
 
-    val host = parent.host
-    val port = parent.port
+    override val host = parent.host
+    override val port = parent.port
+    override val timeout = parent.timeout
+    override val connectionTimeout = parent.connectionTimeout
 
     // TODO: Find a better abstraction
     override def connected = parent.connected

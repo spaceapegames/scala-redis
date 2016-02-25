@@ -1,13 +1,15 @@
 package com.redis
 
 import java.io._
-import java.net.{Socket, InetSocketAddress}
+import java.net.{SocketAddress, InetAddress, Socket, InetSocketAddress}
 
 import serialization.Parse.parseStringSafe
 
 trait IO extends Log {
   val host: String
   val port: Int
+  val timeout: Int
+  val connectionTimeout: Int
 
   var socket: Socket = _
   var out: OutputStream = _
@@ -24,9 +26,11 @@ trait IO extends Log {
   // Connects the socket, and sets the input and output streams.
   def connect: Boolean = {
     try {
-      socket = new Socket(host, port)
+      socket = new Socket()
+      val socketAddress = new InetSocketAddress(host, port)
+      socket.connect(socketAddress, connectionTimeout)
 
-      socket.setSoTimeout(0)
+      socket.setSoTimeout(timeout)
       socket.setKeepAlive(true)
       socket.setTcpNoDelay(true)
 
@@ -73,7 +77,7 @@ trait IO extends Log {
         os.write(data)
         os.flush
       } catch {
-        case x: Throwable => throw new RedisConnectionException("connection is closed. write error")
+        case x: Throwable => throw new RedisConnectionException(s"connection error. write error: ${x.getMessage}")
       }
     }
   }
@@ -86,7 +90,11 @@ trait IO extends Log {
     var found: List[Int] = Nil
     var build = new scala.collection.mutable.ArrayBuilder.ofByte
     while (delimiter != Nil) {
-      val next = in.read
+      val next = try {
+        in.read
+      } catch {
+        case x: Throwable => throw new RedisConnectionException(s"connection error. read error: ${x.getMessage}")
+      }
       if (next < 0) return null
       if (next == delimiter.head) {
         found ::= delimiter.head
@@ -108,7 +116,11 @@ trait IO extends Log {
     val arr = new Array[Byte](count)
     var cur = 0
     while (cur < count) {
-      val read = in.read(arr, cur, count - cur)
+      val read = try {
+        in.read(arr, cur, count - cur)
+      } catch {
+        case x: Throwable => throw new RedisConnectionException(s"connection error. read error: ${x.getMessage}")
+      }
       if(read < 0) return null
       cur += read
     }
