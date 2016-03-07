@@ -136,4 +136,36 @@ trait Operations extends ConnectionCommand{ self: Redis =>
     }
 
   }
+
+    def hscan(hashKey: String, pattern: Option[Any] = None, batchSize: Option[Int] = None, nextCursor: Int = 0): ScanResponse[(String, String)] = {
+
+      val params = batchSize.toList.flatMap(List("count", _)):::pattern.toList.flatMap(List("match", _))
+
+      val rs = send("HSCAN", params.::(nextCursor).::(hashKey))(asScanResult[String])
+      var flattenResult = rs._2.getOrElse(Nil).flatten
+      var result = List.empty[(String, String)]
+      while (!flattenResult.isEmpty){
+        flattenResult match {
+          case headKey::headValue::tail =>
+            result ::= (headKey, headValue)
+            flattenResult = tail
+          case oneElement::Nil =>
+            warn(s"find key ${oneElement} without value ")
+            flattenResult = Nil
+        }
+      }
+
+      if (rs._1 == 0)
+        ScanResponse(result = result, scanStatus = ScanStatus.Finished)
+      else
+        ScanResponse(result = result, scanStatus = ScanStatus.NotFinished(rs._1))
+    }
+  }
+
+case class ScanResponse[R](result: List[(String, String)], scanStatus: ScanStatus)
+object ScanStatus {
+  case object Finished extends ScanStatus
+  case class NotFinished[Int](nextCursor: Int) extends ScanStatus
+}
+sealed trait ScanStatus {
 }
