@@ -38,7 +38,7 @@ private [redis] trait Reply {
   type SingleReply = Reply[Option[Array[Byte]]]
   type MultiReply = Reply[Option[List[Option[Array[Byte]]]]]
   type MultiMultiReply = Reply[Option[List[Option[List[Option[Array[Byte]]]]]]]
-  type ScanReply = Reply[(Int, Option[List[Option[Array[Byte]]]])]
+  type ScanReply = Reply[(Long, Option[List[Option[Array[Byte]]]])]
 
   def readLine: Array[Byte]
   def readCounted(c: Int): Array[Byte]
@@ -178,7 +178,7 @@ private [redis] trait R extends Reply {
 
   def asAny = receive(integerReply orElse singleLineReply orElse bulkReply orElse multiBulkReply)
 
-  def asScanResult[T](implicit parse: Parse[T]): (Int, Option[List[Option[T]]]) = {
+  def asScanResult[T](implicit parse: Parse[T]): (Long, Option[List[Option[T]]]) = {
     val rs = receive(scanReply)
     (rs._1, rs._2.map(_.map(_.map(parse))))
   }

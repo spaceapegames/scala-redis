@@ -34,12 +34,12 @@ trait Operations extends ConnectionCommand{ self: Redis =>
   // atomically renames the key oldkey to newkey.
   def rename(oldkey: Any, newkey: Any)(implicit format: Format): Boolean =
     send("RENAME", List(oldkey, newkey))(asBoolean)
-  
+
   // RENAMENX (oldkey, newkey)
   // rename oldkey into newkey but fails if the destination key newkey already exists.
   def renamenx(oldkey: Any, newkey: Any)(implicit format: Format): Boolean =
     send("RENAMENX", List(oldkey, newkey))(asBoolean)
-  
+
   // DBSIZE
   // return the size of the db.
   def dbsize: Option[Long] =
@@ -89,8 +89,8 @@ trait Operations extends ConnectionCommand{ self: Redis =>
   // returns the remaining time to live of a key that has a timeout in millis
   def pttl(key: Any)(implicit format: Format): Option[Long] =
     send("PTTL", List(key))(asLong)
-    
-  
+
+
   // FLUSHDB the DB
   // removes all the DB data.
   def flushdb: Boolean =
@@ -105,9 +105,9 @@ trait Operations extends ConnectionCommand{ self: Redis =>
   // Move the specified key from the currently selected DB to the specified destination DB.
   def move(key: Any, db: Int)(implicit format: Format): Boolean =
     send("MOVE", List(key, db))(asBoolean)
-  
+
   def scan[T](pattern: Option[Any] = None, limitOpt: Option[Int] = None, batchSize: Option[Int] = None)(f: List[String] => T) {
-    var nextCursor = 0
+    var nextCursor = 0l
 
     val params = batchSize.toList.flatMap(List("count", _)):::pattern.toList.flatMap(List("match", _))
 
@@ -152,6 +152,7 @@ trait Operations extends ConnectionCommand{ self: Redis =>
           case oneElement::Nil =>
             warn(s"find key ${oneElement} without value ")
             flattenResult = Nil
+          case Nil =>
         }
       }
 
