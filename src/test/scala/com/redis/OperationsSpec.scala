@@ -230,6 +230,18 @@ class OperationsSpec extends FunSpec
     }
   }
 
+  describe("hscan while hash doesn't exist") {
+    it("should nil") {
+      val hashkey = "testhkey"
+      r.del(hashkey)
+      r.exists(hashkey) should be (false)
+
+      val resp = r.hscan(hashkey)
+      resp.scanStatus should equal (ScanStatus.Finished)
+      resp.result.size should equal(0)
+    }
+  }
+
   describe("hscan with pattern match") {
     it("should give all keys which match the specified pattern") {
       val hashkey = "testhkey"
