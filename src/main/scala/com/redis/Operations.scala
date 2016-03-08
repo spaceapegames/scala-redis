@@ -165,7 +165,7 @@ trait Operations extends ConnectionCommand{ self: Redis =>
 case class ScanResponse[R](result: List[(String, String)], scanStatus: ScanStatus)
 object ScanStatus {
   case object Finished extends ScanStatus
-  case class NotFinished[Int](nextCursor: Int) extends ScanStatus
+  case class NotFinished(nextCursor: Long) extends ScanStatus
 }
 sealed trait ScanStatus {
 }
