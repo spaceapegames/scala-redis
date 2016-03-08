@@ -218,4 +218,37 @@ class OperationsSpec extends FunSpec
       scanCount should equal (1)
     }
   }
+
+  describe("hscan") {
+    it("should give all keys") {
+      val hashkey = "testhkey"
+      (0 until 100).foreach(i => r.hset(hashkey, s"key${i}", s"testvalue${i}"))
+
+      val resp = r.hscan(hashkey)
+      resp.scanStatus should equal (ScanStatus.Finished)
+      resp.result.size should equal(100)
+    }
+  }
+
+  describe("hscan with pattern match") {
+    it("should give all keys which match the specified pattern") {
+      val hashkey = "testhkey"
+      (0 until 100).foreach(i => r.hset(hashkey, s"key${i}", s"testvalue${i}"))
+
+      val resp = r.hscan(hashkey, pattern = Some("key1*"))
+      resp.scanStatus should equal (ScanStatus.Finished)
+      resp.result.size should equal(11)
+      resp.result.map(_._1).toSet should equal (Set("key19", "key18", "key17", "key16", "key15", "key14", "key13", "key12", "key11", "key10", "key1"))
+    }
+  }
+
+  describe("hscan with batch size") {
+    it("should give the size of keys in one batch") {
+      val hashkey = "testhkey"
+      (0 until 100).foreach(i => r.hset(hashkey, s"key${i}", s"testvalue${i}"))
+
+      val resp = r.hscan(hashkey, batchSize = Some(20))
+      (resp.result.size >= 20) should be(true)
+    }
+  }
 }
