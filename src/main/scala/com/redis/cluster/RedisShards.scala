@@ -9,7 +9,11 @@ import serialization._
  * @param hosts nodes in this cluster
  * @param poolConfig config to initialize pool for each node
  */
-abstract class RedisShards(val hosts: List[RedisNode], poolConfig: RedisClientPoolConfig = RedisStackPoolConfig()) extends RedisCommand {
+abstract class RedisShards(
+  val hosts: List[RedisNode],
+  poolConfig: RedisClientPoolConfig = RedisStackPoolConfig(),
+  override val timeout: Int = 0,
+  override val connectionTimeout: Int = 0) extends RedisCommand {
 
   // not needed at cluster level
   override val host = null
