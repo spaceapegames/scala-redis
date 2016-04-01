@@ -60,6 +60,7 @@ trait RedisCommand extends Redis
   with HashOperations
   with EvalOperations
   
+case class ClientTimeouts(timeoutMs: Int, connectionTimeoutMs: Int)
 
 class RedisClient(val host: String, val port: Int, override val timeout: Int = 0, override val connectionTimeout: Int = 0)
   extends RedisCommand with PubCommand with SubCommand {
