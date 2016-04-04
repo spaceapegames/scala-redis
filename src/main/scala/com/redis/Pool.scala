@@ -2,15 +2,15 @@ package com.redis
 
 import org.apache.commons.pool._
 
-private [redis] class RedisClientFactory(node: RedisNode, listener: Option[PoolListener])
+private [redis] class RedisClientFactory(node: RedisNode, listener: Option[PoolListener], timeouts: ClientTimeouts)
   extends PoolableObjectFactory[RedisClient] {
 
   def this (node: RedisNode){
-    this(node, None)
+    this(node, None, ClientTimeouts(0, 0))
   }
   // when we make an object it's already connected
   def makeObject = {
-    val cl = new RedisClient(node.host, node.port)
+    val cl = new RedisClient(node.host, node.port, timeouts.timeoutMs, timeouts.connectionTimeoutMs)
     if (node.database != 0)
       cl.select(node.database)
     node.secret.foreach(cl auth _)

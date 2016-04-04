@@ -11,7 +11,10 @@ trait RedisClientPool {
 }
 
 class RedisClientPoolByAddress (val node: RedisNode, val poolConfig: RedisClientPoolConfig, poolListener: Option[PoolListener]) extends RedisPoolByAddressBase[RedisClient] with RedisClientPool{
-  protected def newClientFactory: PoolableObjectFactory[RedisClient] = new RedisClientFactory(node, poolListener)
+  protected def newClientFactory: PoolableObjectFactory[RedisClient] = {
+    val timeouts = ClientTimeouts(poolConfig.timeoutMs, poolConfig.connectionTimeoutMs)
+    new RedisClientFactory(node, poolListener, timeouts)
+  }
 
   def this(node: RedisNode){
     this(node, RedisGenericPoolConfig(), None)
