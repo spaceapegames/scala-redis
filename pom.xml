@@ -50,11 +50,6 @@
 			<version>${scalalib.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.scala-lang</groupId>
-			<artifactId>scala-actors</artifactId>
-			<version>${scalalib.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>commons-pool</groupId>
 			<artifactId>commons-pool</artifactId>
 			<version>1.6</version>

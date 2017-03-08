@@ -1,11 +1,17 @@
 package com.redis
 
+import java.util.concurrent.TimeUnit
+
 import org.scalatest.FunSpec
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 @RunWith(classOf[JUnitRunner])
 class PoolSpec extends FunSpec 
@@ -62,8 +68,8 @@ class PoolSpec extends FunSpec
     it("should distribute work amongst the clients") {
       val l = (0 until 5000).map(_.toString).toList
       val fns = List[List[String] => Option[Long]](lp, rp, set)
-      val tasks = fns map (fn => scala.actors.Futures.future { fn(l) })
-      val results = tasks map (future => future.apply())
+      val tasks = fns map (fn => Future { fn(l) })
+      val results = Await.result(Future.sequence(tasks), Duration(2, TimeUnit.SECONDS))
       results should equal(List(Some(5000), Some(5000), Some(1000)))
     }
   }
