@@ -3,14 +3,14 @@ package com.redis
 import org.scalatest.FunSpec
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
 
 @RunWith(classOf[JUnitRunner])
 class OperationsSpec extends FunSpec 
-                     with ShouldMatchers
+                     with Matchers
                      with BeforeAndAfterEach
                      with BeforeAndAfterAll {
 
@@ -63,7 +63,7 @@ class OperationsSpec extends FunSpec
       r.set("anshin-1", "debasish")
       r.set("anshin-2", "maulindu")
       r.rename("anshin-2", "anshin-2-new") should equal(true)
-      val thrown = evaluating { r.rename("anshin-2", "anshin-2-new") } should produce[Exception]
+      val thrown = intercept[Exception] { r.rename("anshin-2", "anshin-2-new") }
       thrown.getMessage should equal ("ERR no such key")
     }
   }

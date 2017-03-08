@@ -3,13 +3,13 @@ package com.redis
 import org.scalatest.FunSpec
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
 @RunWith(classOf[JUnitRunner])
 class PoolSpec extends FunSpec 
-               with ShouldMatchers
+               with Matchers
                with BeforeAndAfterEach
                with BeforeAndAfterAll {
 

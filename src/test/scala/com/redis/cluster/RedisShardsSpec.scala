@@ -3,7 +3,7 @@ package com.redis.cluster
 import org.scalatest.FunSpec
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import com.redis._
@@ -12,7 +12,7 @@ import com.redis.serialization.Format
 
 @RunWith(classOf[JUnitRunner])
 class RedisShardsSpec extends FunSpec
-with ShouldMatchers
+with Matchers
 with BeforeAndAfterEach
 with BeforeAndAfterAll {
 
@@ -23,9 +23,21 @@ with BeforeAndAfterAll {
 
   override def beforeEach = {}
 
-  override def afterEach = r.flushdb
+  override def afterEach = try {
+    r.flushdb
+  } catch {
+    case t: Throwable =>
+      t.printStackTrace()
+      //throw t
+  }
 
-  override def afterAll = r.close
+  override def afterAll = try {
+    r.close
+  } catch {
+    case t: Throwable =>
+      t.printStackTrace()
+      //throw t
+  }
 
   def formattedKey(key: Any)(implicit format: Format) = {
     format(key)

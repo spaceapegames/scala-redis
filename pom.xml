@@ -37,10 +37,10 @@
     </licenses>
 
 	<properties>
-                <scalalib.version>2.11.4</scalalib.version>
+        <scalalib.version>2.11.4</scalalib.version>
 		<scala.version>2.11</scala.version>
 		<junit.version>4.9</junit.version>
-		<scalatest.version>2.2.2</scalatest.version>
+		<scalatest.version>3.0.1</scalatest.version>
 	</properties>
 
 	<dependencies>

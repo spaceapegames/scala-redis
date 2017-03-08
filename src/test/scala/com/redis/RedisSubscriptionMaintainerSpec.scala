@@ -3,14 +3,14 @@ package com.redis
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FunSpec}
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration._
 import java.util.concurrent.atomic.AtomicInteger
 
 @RunWith(classOf[JUnitRunner])
 class RedisSubscriptionMaintainerSpec extends FunSpec
-with ShouldMatchers
+with Matchers
 with BeforeAndAfterEach
 with BeforeAndAfterAll
 with Log{
