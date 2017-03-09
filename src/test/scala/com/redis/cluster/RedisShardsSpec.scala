@@ -23,21 +23,9 @@ with BeforeAndAfterAll {
 
   override def beforeEach = {}
 
-  override def afterEach = try {
-    r.flushdb
-  } catch {
-    case t: Throwable =>
-      t.printStackTrace()
-      //throw t
-  }
+  override def afterEach = r.flushdb
 
-  override def afterAll = try {
-    r.close
-  } catch {
-    case t: Throwable =>
-      t.printStackTrace()
-      //throw t
-  }
+  override def afterAll = r.close
 
   def formattedKey(key: Any)(implicit format: Format) = {
     format(key)
