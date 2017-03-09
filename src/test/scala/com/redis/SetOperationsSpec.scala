@@ -83,7 +83,7 @@ class SetOperationsSpec extends FunSpec
       r.sadd("set-1", "foo").get should equal(1)
       r.sadd("set-1", "bar").get should equal(1)
       r.sadd("set-1", "baz").get should equal(1)
-      r.spop("set-1").get should be (equal("foo") or equal("bar") or equal("baz"))
+      Some(r.spop("set-1").get) should contain oneOf ("foo", "bar", "baz")
     }
     it("should return nil if the key does not exist") {
       r.spop("set-1") should equal(None)
@@ -297,7 +297,7 @@ class SetOperationsSpec extends FunSpec
       r.sadd("set-1", "foo").get should equal(1)
       r.sadd("set-1", "bar").get should equal(1)
       r.sadd("set-1", "baz").get should equal(1)
-      r.srandmember("set-1").get should be (equal("foo") or equal("bar") or equal("baz"))
+      Some(r.srandmember("set-1").get) should contain oneOf ("foo", "bar", "baz")
     }
     it("should return None for a non-existing key") {
       r.srandmember("set-1") should equal(None)
