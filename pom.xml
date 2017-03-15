@@ -123,17 +123,17 @@
 					</includes>
 				</configuration>
 			</plugin>
-            <!--<plugin>-->
-                <!--<groupId>org.sonatype.plugins</groupId>-->
-                <!--<artifactId>nexus-staging-maven-plugin</artifactId>-->
-                <!--<version>1.6.2</version>-->
-                <!--<extensions>true</extensions>-->
-                <!--<configuration>-->
-                    <!--<serverId>ossrh</serverId>-->
-                    <!--<nexusUrl>https://oss.sonatype.org/</nexusUrl>-->
-                    <!--<autoReleaseAfterClose>true</autoReleaseAfterClose>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.2</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
@@ -150,12 +150,12 @@
 
 	<distributionManagement>
         <repository>
-            <id>spaceapegames</id>
-            <url>http://spaceapegames.artifactoryonline.com/spaceapegames/libs-releases-local</url>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
         <snapshotRepository>
-            <id>spaceapegames</id>
-            <url>http://spaceapegames.artifactoryonline.com/spaceapegames/libs-snapshots-local</url>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
 	</distributionManagement>
 
