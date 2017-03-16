@@ -3,7 +3,7 @@ package com.redis.cluster
 import org.scalatest.FunSpec
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import com.redis._
@@ -12,7 +12,7 @@ import com.redis.serialization.Format
 
 @RunWith(classOf[JUnitRunner])
 class RedisShardsSpec extends FunSpec
-with ShouldMatchers
+with Matchers
 with BeforeAndAfterEach
 with BeforeAndAfterAll {
 

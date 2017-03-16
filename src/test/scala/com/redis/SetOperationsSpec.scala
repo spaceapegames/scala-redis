@@ -3,14 +3,14 @@ package com.redis
 import org.scalatest.FunSpec
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
 
 @RunWith(classOf[JUnitRunner])
 class SetOperationsSpec extends FunSpec 
-                        with ShouldMatchers
+                        with Matchers
                         with BeforeAndAfterEach
                         with BeforeAndAfterAll {
 
@@ -38,7 +38,7 @@ class SetOperationsSpec extends FunSpec
     }
     it("should fail if the key points to a non-set") {
       r.lpush("list-1", "foo") should equal(Some(1))
-      val thrown = evaluating { r.sadd("list-1", "foo") } should produce [Exception]
+      val thrown = intercept[Exception] { r.sadd("list-1", "foo") }
       thrown.getMessage should equal("WRONGTYPE Operation against a key holding the wrong kind of value")
     }
   }
@@ -64,7 +64,7 @@ class SetOperationsSpec extends FunSpec
     }
     it("should fail if the key points to a non-set") {
       r.lpush("list-1", "foo") should equal(Some(1))
-      val thrown = evaluating { r.srem("list-1", "foo") } should produce [Exception]
+      val thrown = intercept[Exception] { r.srem("list-1", "foo") }
       thrown.getMessage should equal("WRONGTYPE Operation against a key holding the wrong kind of value")
     }
   }
@@ -83,7 +83,7 @@ class SetOperationsSpec extends FunSpec
       r.sadd("set-1", "foo").get should equal(1)
       r.sadd("set-1", "bar").get should equal(1)
       r.sadd("set-1", "baz").get should equal(1)
-      r.spop("set-1").get should (equal("foo") or equal("bar") or equal("baz"))
+      Some(r.spop("set-1").get) should contain oneOf ("foo", "bar", "baz")
     }
     it("should return nil if the key does not exist") {
       r.spop("set-1") should equal(None)
@@ -115,7 +115,7 @@ class SetOperationsSpec extends FunSpec
       r.lpush("list-1", "bar") should equal(Some(2))
       r.lpush("list-1", "baz") should equal(Some(3))
       r.sadd("set-1", "foo").get should equal(1)
-      val thrown = evaluating { r.smove("list-1", "set-1", "bat") } should produce [Exception]
+      val thrown = intercept[Exception] { r.smove("list-1", "set-1", "bat") }
       thrown.getMessage should equal("WRONGTYPE Operation against a key holding the wrong kind of value")
     }
   }
@@ -297,7 +297,7 @@ class SetOperationsSpec extends FunSpec
       r.sadd("set-1", "foo").get should equal(1)
       r.sadd("set-1", "bar").get should equal(1)
       r.sadd("set-1", "baz").get should equal(1)
-      r.srandmember("set-1").get should (equal("foo") or equal("bar") or equal("baz"))
+      Some(r.srandmember("set-1").get) should contain oneOf ("foo", "bar", "baz")
     }
     it("should return None for a non-existing key") {
       r.srandmember("set-1") should equal(None)

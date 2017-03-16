@@ -3,14 +3,14 @@ package com.redis
 import org.scalatest.FunSpec
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
 
 @RunWith(classOf[JUnitRunner])
 class ListOperationsSpec extends FunSpec 
-                         with ShouldMatchers
+                         with Matchers
                          with BeforeAndAfterEach
                          with BeforeAndAfterAll {
 
@@ -34,7 +34,7 @@ class ListOperationsSpec extends FunSpec
     }
     it("should throw if the key has a non-list value") {
       r.set("anshin-1", "debasish") should equal(true)
-      val thrown = evaluating { r.lpush("anshin-1", "bar") } should produce [Exception]
+      val thrown = intercept[Exception] { r.lpush("anshin-1", "bar") }
       thrown.getMessage should equal("WRONGTYPE Operation against a key holding the wrong kind of value")
     }
   }
@@ -54,7 +54,7 @@ class ListOperationsSpec extends FunSpec
     }
     it("should throw if the key has a non-list value") {
       r.set("anshin-1", "debasish") should equal(true)
-      val thrown = evaluating { r.rpush("anshin-1", "bar") } should produce [Exception]
+      val thrown = intercept[Exception] { r.rpush("anshin-1", "bar") }
       thrown.getMessage should equal("WRONGTYPE Operation against a key holding the wrong kind of value")
     }
   }
@@ -78,7 +78,7 @@ class ListOperationsSpec extends FunSpec
     }
     it("should throw for a non-list key") {
       r.set("anshin-1", "debasish") should equal(true)
-      val thrown = evaluating { r.llen("anshin-1") } should produce [Exception]
+      val thrown = intercept[Exception] { r.llen("anshin-1") }
       thrown.getMessage should equal("WRONGTYPE Operation against a key holding the wrong kind of value")
     }
   }
@@ -174,7 +174,7 @@ class ListOperationsSpec extends FunSpec
       r.lpush("list-1", "6") should equal(Some(1))
       r.lpush("list-1", "5") should equal(Some(2))
       r.lpush("list-1", "4") should equal(Some(3))
-      val thrown = evaluating { r.lset("list-1", 12, "30") } should produce [Exception]
+      val thrown = intercept[Exception] { r.lset("list-1", 12, "30") }
       thrown.getMessage should equal("ERR index out of range")
     }
   }

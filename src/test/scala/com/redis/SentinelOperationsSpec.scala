@@ -1,7 +1,7 @@
 package com.redis
 
 import org.scalatest.{OptionValues, BeforeAndAfterAll, BeforeAndAfterEach, FunSpec}
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.redis.sentinel.{SentinelAddress, SentinelClient}
@@ -9,7 +9,7 @@ import java.net.InetAddress
 
 //@RunWith(classOf[JUnitRunner])
 class SentinelOperationsSpec extends FunSpec
-with ShouldMatchers
+with Matchers
 with BeforeAndAfterEach
 with BeforeAndAfterAll
 with OptionValues {

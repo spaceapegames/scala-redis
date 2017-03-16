@@ -3,12 +3,12 @@ package com.redis.sentinel
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FunSpec}
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import com.redis.{RedisGenericPoolConfig, RedisNode}
 
 @RunWith(classOf[JUnitRunner])
 class RedisSlavePoolsBySentinelSpec  extends FunSpec
-with ShouldMatchers
+with Matchers
 with BeforeAndAfterEach
 with BeforeAndAfterAll {
 

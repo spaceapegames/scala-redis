@@ -3,14 +3,14 @@ package com.redis
 import org.scalatest.FunSpec
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 
 
 @RunWith(classOf[JUnitRunner])
 class PipelineSpec extends FunSpec 
-                   with ShouldMatchers
+                   with Matchers
                    with BeforeAndAfterEach
                    with BeforeAndAfterAll {
 
@@ -52,12 +52,12 @@ class PipelineSpec extends FunSpec
   describe("pipeline3") {
     it("should handle errors properly in pipelined commands") {
       val thrown = 
-        evaluating {
+        intercept[Exception] {
           r.pipeline { p =>
             p.set("a", "abc")
             p.lpop("a")
           }
-        } should produce [Exception]
+        }
       thrown.getMessage should equal ("WRONGTYPE Operation against a key holding the wrong kind of value")
       r.get("a").get should equal("abc")
     }
