@@ -48,13 +48,20 @@ trait IO extends Log {
   // Disconnects the socket.
   def disconnect: Boolean = {
     try {
-      socket.close
-      out.close
-      in.close
+      if (socket != null) {
+        socket.close
+      }
+      if (out != null) {
+        out.close
+      }
+      if (in != null) {
+        in.close
+      }
       clearFd
       true
     } catch {
       case x: Throwable =>
+        error("Failed to disconnect cleanly from %s %s", x, host,port)
         false
     }
   }
