@@ -35,6 +35,7 @@ with Log{
 
     override def disconnect: Boolean = {
       disconnectCount = disconnectCount + 1
+      debug("disconnectCount = disconnectCount + 1")
       super.disconnect
     }
 
@@ -88,21 +89,24 @@ with Log{
         }
       })
 
+      debug("fakingRedisDown == true")
       fakingRedisDown = true
-      eventually (timeout((underTest.retryInterval*4 + 1).milliseconds)) {
+      eventually (timeout((underTest.retryInterval*2 + 1).milliseconds), interval(0.5.seconds)) {
         disconnectCount shouldBe 2
+        debug("disconnect check passed")
       }
 
       subscribed = false
       reconnected = false
       fakingRedisDown = false
-      eventually (timeout((underTest.retryInterval*2 + 1).milliseconds)) {
+      eventually (timeout((underTest.retryInterval + 1).milliseconds), interval(0.5.seconds)) {
         reconnected shouldBe true
+        debug("reconnected check passed")
       }
 
       val receivedAFuture = receivedA.future
 
-      eventually (timeout((underTest.retryInterval*2 + 1).milliseconds)) {
+      eventually (timeout((underTest.retryInterval + 1).milliseconds), interval(0.5.seconds)) {
         subscribed shouldBe true
         pub.publish("a", "m")
         Await.result(receivedAFuture, 1.second) should be (true)
