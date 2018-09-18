@@ -91,7 +91,7 @@ with Log{
 
       debug("fakingRedisDown == true")
       fakingRedisDown = true
-      eventually (timeout((underTest.retryInterval*2 + 1).milliseconds), interval(0.5.seconds)) {
+      eventually (timeout((underTest.retryInterval*3).milliseconds), interval(0.5.seconds)) {
         disconnectCount shouldBe 2
         debug("disconnect check passed")
       }
@@ -99,14 +99,14 @@ with Log{
       subscribed = false
       reconnected = false
       fakingRedisDown = false
-      eventually (timeout((underTest.retryInterval + 1).milliseconds), interval(0.5.seconds)) {
+      eventually (timeout((underTest.retryInterval*2).milliseconds), interval(0.5.seconds)) {
         reconnected shouldBe true
         debug("reconnected check passed")
       }
 
       val receivedAFuture = receivedA.future
 
-      eventually (timeout((underTest.retryInterval + 1).milliseconds), interval(0.5.seconds)) {
+      eventually (timeout((underTest.retryInterval*2).milliseconds), interval(0.5.seconds)) {
         subscribed shouldBe true
         pub.publish("a", "m")
         Await.result(receivedAFuture, 1.second) should be (true)
